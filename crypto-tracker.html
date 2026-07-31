@@ -229,6 +229,29 @@ function deleteAllTrades() {
         });
     });
 }
+function saveTradesBulk(trades) {
+    return openDB().then(function(db) {
+        return new Promise(function(resolve, reject) {
+            var tx = db.transaction(STORE, "readwrite");
+            var store = tx.objectStore(STORE);
+            for (var i = 0; i < trades.length; i++) store.put(trades[i]);
+            tx.oncomplete = function() { resolve(); };
+            tx.onerror = function() { reject(tx.error); };
+        });
+    });
+}
+function deleteTradesByIds(ids) {
+    if (!ids || !ids.length) return Promise.resolve();
+    return openDB().then(function(db) {
+        return new Promise(function(resolve, reject) {
+            var tx = db.transaction(STORE, "readwrite");
+            var store = tx.objectStore(STORE);
+            for (var i = 0; i < ids.length; i++) store.delete(ids[i]);
+            tx.oncomplete = function() { resolve(); };
+            tx.onerror = function() { reject(tx.error); };
+        });
+    });
+}
 
 function buildSign(timestamp, method, path, body) {
     var preHash = timestamp + method + path + (body || "");
@@ -487,6 +510,9 @@ async function fetchAllTrades() {
             if (allFills.length > 0) {
                 console.log("[Fetch] Sample:", JSON.stringify(allFills[0]).slice(0, 500));
             }
+            var rawFillCount = allFills.length;
+            allFills = dedupeFills(allFills);
+            console.log("[Fetch] Fills after dedupe:", allFills.length, "from", rawFillCount);
             if (allFills.length > 0) {
                 var pnlCheck = {zero:0, nonzero:0, first10pnl:[]};
                 for(var pi=0; pi<Math.min(allFills.length, 1000); pi++) {
@@ -511,12 +537,34 @@ async function fetchAllTrades() {
                 return;
             }
            console.log("[Fetch] Trades processed:", trades.length);
-           for (var ti = 0; ti < trades.length; ti++) {
-               await saveTrade(trades[ti]);
-           }
+            var existing = await loadAllTrades();
+            var annotationMap = {};
+            var staleIds = [];
+            for (var ei = 0; ei < existing.length; ei++) {
+                var et = existing[ei];
+                if (et.source === "fetch" || (et.roundKey && et.roundKey.indexOf("|") > 0) || /^\d+_(long|short)_/.test(et.id || "")) {
+                    if (et.roundKey) annotationMap[et.roundKey] = et;
+                    staleIds.push(et.id);
+                }
+            }
+            for (var ti = 0; ti < trades.length; ti++) {
+                var nt = trades[ti];
+                var old = annotationMap[nt.roundKey];
+                if (old) {
+                    nt.priceAction = old.priceAction;
+                    nt.priceActionWin = old.priceActionWin;
+                    nt.chanTheory = old.chanTheory;
+                    nt.chanTheoryWin = old.chanTheoryWin;
+                    nt.notes = old.notes || "";
+                }
+            }
+            if (allFills.length > 0) {
+                await deleteTradesByIds(staleIds);
+                await saveTradesBulk(trades);
+            }
            await loadTrades();
             switchView("trades");
-           toast("成功获取 " + trades.length + " 笔交易记录（API返回 " + allFills.length + " 笔成交）", "success");
+           toast("成功获取 " + trades.length + " 笔交易记录（API返回 " + rawFillCount + " 笔成交，去重后 " + allFills.length + " 笔）", "success");
    } catch (e) {
         toast("获取失败: " + e.message, "error");
     } finally {
@@ -524,192 +572,211 @@ async function fetchAllTrades() {
         btn.textContent = "获取交易记录";
     }
 }
+function dedupeFills(fills) {
+    var seen = {};
+    var out = [];
+    for (var i = 0; i < fills.length; i++) {
+        var f = fills[i];
+        if (!f || !f.instId || !f.side) continue;
+        var fid = f.fillId || f.tradeId || (f.ordId && f.fillTime ? f.ordId + "_" + f.fillTime : "");
+        if (fid) {
+            if (seen[fid]) continue;
+            seen[fid] = true;
+        }
+        out.push(f);
+    }
+    return out;
+}
+function normalizeFills(fills) {
+    var out = [];
+    for (var i = 0; i < fills.length; i++) {
+        var f = fills[i] || {};
+        var sz = parseFloat(f.sz || f.fillSz || 0);
+        var px = parseFloat(f.px || f.fillPx || 0);
+        var pnl = parseFloat(f.pnl || f.fillPnl || 0);
+        var ts = parseInt(f.fillTime || f.ts || 0, 10) || 0;
+        if (!f.instId || !f.side || !isFinite(sz) || !isFinite(px)) continue;
+        out.push({
+            instId: f.instId,
+            instType: f.instType || "",
+            posSide: f.posSide || "net",
+            side: f.side,
+            sz: sz,
+            px: px,
+            pnl: pnl,
+            fee: parseFloat(f.fee || 0),
+            feeCcy: f.feeCcy || "USDT",
+            fillTime: f.fillTime || String(ts),
+            ts: ts,
+            fillId: f.fillId || f.tradeId || "",
+            ordId: f.ordId || ""
+        });
+    }
+    return out;
+}
 async function processFillsToTrades(fills) {
-   // Normalize field names: OKX returns fillPx/fillSz/fillPnl
-   for (var nx = 0; nx < fills.length; nx++) {
-       var fx = fills[nx];
-       fx.px = fx.px || fx.fillPx;
-       fx.sz = fx.sz || fx.fillSz;
-       fx.pnl = fx.pnl || fx.fillPnl;
-       fx.ts = fx.ts || fx.fillTime;
-       fx.fillId = fx.fillId || fx.tradeId;
-        fx.sz = parseFloat(fx.sz || 0);
-        fx.px = parseFloat(fx.px || 0);
-        fx.pnl = parseFloat(fx.pnl || 0);
-   }
-   var groups = {};
-   for (var fi = 0; fi < fills.length; fi++) {
-       var f = fills[fi];
-       var key = f.instId + "|" + (f.posSide || f.side || "net");
-       if (!groups[key]) groups[key] = [];
-       groups[key].push(f);
-   }
-   var result = {};
-   var keys = Object.keys(groups);
-   for (var ki = 0; ki < keys.length; ki++) {
-       var keyFills = groups[keys[ki]];
-       keyFills.sort(function(a, b) { return parseInt(a.fillTime || a.ts) - parseInt(b.fillTime || b.ts); });
-       var parts = keys[ki].split("|");
-       var inst = parts[0];
-       var posSideInfo = parts[1];
-       var currentPos = 0, entryPrice = 0, entrySize = 0;
-       for (var fi2 = 0; fi2 < keyFills.length; fi2++) {
-           var fill = keyFills[fi2];
-            var sz = fill.sz; // already parsed
-            var px = fill.px; // already parsed
-            var pnl = fill.pnl; // already parsed
-           var side = fill.side;
-           var ps = fill.posSide || "net";
-           var isOpen = false, isClose = false;
-            if (inst.includes("-SWAP") && ps === "net") {
-                if (currentPos === 0) {
-                    isOpen = true;
-                } else if (currentPos > 0 && side === "sell") {
-                    isClose = true;
-                } else if (currentPos < 0 && side === "buy") {
-                    isClose = true;
-                } else {
-                    isOpen = true;
-                }
-            } else if (inst.includes("-SWAP")) {
-                if ((side === "buy" && ps === "long") || (side === "sell" && ps === "short")) {
-                    isOpen = true;
-                } else {
-                    isClose = true;
-                }
+    var norm = dedupeFills(normalizeFills(fills));
+    norm.sort(function(a, b) {
+        if (a.ts !== b.ts) return a.ts - b.ts;
+        return (a.fillId || "").localeCompare(b.fillId || "");
+    });
+    var groups = {};
+    for (var ni = 0; ni < norm.length; ni++) {
+        var nf = norm[ni];
+        var gkey = nf.instId + "|" + (nf.posSide || "net");
+        if (!groups[gkey]) groups[gkey] = [];
+        groups[gkey].push(nf);
+    }
+    var trades = [];
+    var keys = Object.keys(groups);
+    for (var ki = 0; ki < keys.length; ki++) {
+        var groupFills = groups[keys[ki]];
+        var parts = keys[ki].split("|");
+        var inst = parts[0];
+        var groupPos = parts[1];
+        var hedged = groupPos === "long" || groupPos === "short";
+        var isSpot = inst.split("-").length === 2;
+        var pos = 0;
+        var round = null;
+
+        for (var fi = 0; fi < groupFills.length; fi++) {
+            var fill = groupFills[fi];
+            var dir = hedged ? (groupPos === "short" ? -1 : 1) : (fill.side === "buy" ? 1 : -1);
+            var isOpen;
+            if (hedged) {
+                isOpen = (fill.side === "buy" && groupPos === "long") || (fill.side === "sell" && groupPos === "short");
             } else {
-                if (side === "buy") isOpen = true;
-                else isClose = true;
+                isOpen = pos === 0 || (pos > 0 && fill.side === "buy") || (pos < 0 && fill.side === "sell");
             }
-            if (isOpen) {
-                var dir = (ps === "short" || side === "sell") ? -1 : 1;
-                currentPos += dir * sz;
-                var totalCost = (entryPrice || px) * entrySize + px * sz;
-                entrySize += sz;
-                entryPrice = totalCost / entrySize;
+
+            if (isSpot && pos === 0 && fill.side === "sell") continue;
+
+            if (isOpen && (pos !== 0 || Math.abs(fill.pnl) < 0.000001)) {
+                if (!round) round = newRound(fill.ts, dir > 0 ? "long" : "short");
+                round.openQtyTotal += fill.sz;
+                round.openCostTotal += fill.px * fill.sz;
+                round.openQty += fill.sz;
+                round.openCost += fill.px * fill.sz;
+                pos += dir * fill.sz;
+                continue;
             }
-            if (isClose) {
-                var realPnl = pnl;
-                if (realPnl === 0 && entryPrice > 0 && currentPos !== 0) {
-                    var dir2 = currentPos > 0 ? 1 : -1;
-                    var actualClose = Math.min(sz, Math.abs(currentPos));
-                    realPnl = (px - entryPrice) * dir2 * actualClose;
-                                        var sizeForTrade = actualClose;
-                    if (currentPos > 0) {
-                        currentPos -= actualClose;
-                    } else {
-                        currentPos += actualClose;
-                    }
-                    entrySize = Math.abs(currentPos);
-                    var remaining = sz - actualClose;
-                    if (remaining > 0.0001) {
-                        var remDir = (side === "sell") ? -1 : 1;
-                        currentPos += remDir * remaining;
-                        var totalCost = (entryPrice || px) * (entrySize || 0) + px * remaining;
-                        entrySize = Math.abs(currentPos);
-                        entryPrice = totalCost / entrySize;
-                    }
+
+            // A fill at zero position with realized PnL closes a position opened before this fetch window.
+            if (pos === 0 && Math.abs(fill.pnl) > 0.000001) {
+                round = {
+                    side: hedged ? groupPos : (fill.side === "sell" ? "long" : "short"),
+                    openQtyTotal: 0,
+                    openCostTotal: 0,
+                    openQty: 0,
+                    openCost: 0,
+                    closeQty: fill.sz,
+                    closeCost: fill.px * fill.sz,
+                    pnl: fill.pnl,
+                    fee: fill.fee,
+                    firstOpenTs: fill.ts,
+                    lastCloseTs: fill.ts
+                };
+                pushRoundTrade(trades, inst, groupPos, round);
+                round = null;
+                continue;
+            }
+            if (hedged && pos === 0) continue;
+
+            var remaining = fill.sz;
+            while (remaining > 0.000001 && Math.abs(pos) > 0.000001) {
+                var closeQty = Math.min(remaining, Math.abs(pos));
+                var avgEntry = round && round.openQty > 0 ? round.openCost / round.openQty : 0;
+                var realized;
+                if (fill.sz > 0 && Math.abs(fill.pnl) > 0.000001) {
+                    realized = fill.pnl * (closeQty / fill.sz);
+                } else if (avgEntry > 0) {
+                    realized = (fill.px - avgEntry) * (pos > 0 ? 1 : -1) * closeQty;
                 } else {
-                    currentPos += ((ps === "short" || side === "buy") ? 1 : -1) * sz;
-                    entrySize = Math.abs(currentPos);
-                    var sizeForTrade = Math.min(sz, Math.abs(currentPos) + sz);
+                    realized = 0;
                 }
-                if (Math.abs(realPnl) > 0.0001 || Math.abs(currentPos) < 0.001) {
-                   var direction;
-                   if (ps === "net") {
-                       direction = (side === "sell") ? "long" : "short";
-                   } else {
-                       direction = (ps === "short") ? "short" : "long";
-                   }
-                    var tradeKey = fill.ordId + "_" + direction + "_" + inst;
-                    var pnlRatio = 0;
-                    if (entryPrice > 0 && px > 0) {
-                        pnlRatio = (direction === "long" ? (px - entryPrice) / entryPrice : (entryPrice - px) / entryPrice) * 100;
-                    }
-                    if (result[tradeKey]) {
-                        result[tradeKey].pnl += realPnl;
-                        result[tradeKey].fee += parseFloat(fill.fee || 0);
-                        result[tradeKey].exitPrice = result[tradeKey].exitPrice ? (result[tradeKey].exitPrice + px) / 2 : px;
-                        if (entryPrice > 0) result[tradeKey].entryPrice = (result[tradeKey].entryPrice + entryPrice) / 2;
-                        result[tradeKey].size += sz;
-                    } else {
-                        result[tradeKey] = {
-                            id: tradeKey,
-                            instId: inst,
-                            instType: "永续合约",
-                            side: direction,
-                            posSide: ps,
-                            entryPrice: entryPrice || px,
-                            exitPrice: parseFloat(fill.px),
-                            size: sizeForTrade || sz,
-                            pnl: realPnl,
-                            pnlRatio: pnlRatio,
-                            fee: parseFloat(fill.fee || 0),
-                            feeCcy: fill.feeCcy || "USDT",
-                            fillTime: fill.fillTime || fill.ts,
-                            ts: parseInt(fill.fillTime || fill.ts || 0),
-                            priceAction: null,
-                            priceActionWin: null,
-                            chanTheory: null,
-                            chanTheoryWin: null,
-                            notes: ""
-                        };
-                    }
-                } else {
-                    if (currentPos === 0 && entryPrice !== 0) {
-                        entryPrice = 0;
-                        entrySize = 0;
+                if (!round) round = newRound(fill.ts, pos > 0 ? "long" : "short");
+                round.closeQty += closeQty;
+                round.closeCost += fill.px * closeQty;
+                round.pnl += realized;
+                round.fee += fill.sz > 0 ? fill.fee * (closeQty / fill.sz) : fill.fee;
+                round.lastCloseTs = fill.ts;
+                if (round.openQty > 0) {
+                    round.openQty -= closeQty;
+                    round.openCost -= avgEntry * closeQty;
+                    if (round.openQty <= 0) {
+                        round.openQty = 0;
+                        round.openCost = 0;
                     }
                 }
+                pos += pos > 0 ? -closeQty : closeQty;
+                if (Math.abs(pos) < 0.000001) {
+                    pushRoundTrade(trades, inst, groupPos, round);
+                    round = null;
+                }
+                remaining -= closeQty;
+            }
+
+            // Net-position flip: the excess of a close fill opens the opposite direction.
+            if (remaining > 0.000001 && !hedged) {
+                round = newRound(fill.ts, dir > 0 ? "long" : "short");
+                round.openQtyTotal = remaining;
+                round.openCostTotal = fill.px * remaining;
+                round.openQty = remaining;
+                round.openCost = fill.px * remaining;
+                pos = dir * remaining;
             }
         }
     }
-    for (var fi3 = 0; fi3 < fills.length; fi3++) {
-        var f3 = fills[fi3];
-        var k3 = f3.instId + "|" + (f3.posSide || f3.side || "net");
-        var eKeys = Object.keys(result);
-        var found = false;
-        for (var ek = 0; ek < eKeys.length; ek++) {
-            if (eKeys[ek].startsWith(k3)) { found = true; break; }
-        }
-        if (!found) {
-            var pnl3 = parseFloat(f3.pnl || 0);
-            if (Math.abs(pnl3) > 0.0001) {
-                var dir3 = (f3.posSide === "short") ? "short" : "long";
-                    var tk3 = f3.ordId + "_" + dir3 + "_" + (f3.instId || "");
-                if (!result[tk3]) {
-                    result[tk3] = {
-                        id: tk3,
-                        instId: f3.instId,
-                        instType: (f3.instId && f3.instId.includes("-SWAP")) ? "永续合约" : (f3.instId && f3.instId.includes("-")) ? "交割合约" : "现货",
-                        side: dir3,
-                        posSide: f3.posSide || dir3,
-                        entryPrice: parseFloat(f3.px || 0),
-                        exitPrice: parseFloat(f3.px || 0),
-                        size: parseFloat(f3.sz || 0),
-                        pnl: pnl3,
-                        pnlRatio: parseFloat(f3.pnlRatio || 0) * 100,
-                        fee: parseFloat(f3.fee || 0),
-                        feeCcy: f3.feeCcy || "USDT",
-                        fillTime: f3.fillTime || f3.ts,
-                        ts: parseInt(f3.fillTime || f3.ts || 0),
-                        priceAction: null,
-                        priceActionWin: null,
-                        chanTheory: null,
-                        chanTheoryWin: null,
-                        notes: ""
-                    };
-                }
-            }
-        }
+    trades.sort(function(a, b) { return b.ts - a.ts; });
+    return trades;
+}
+function newRound(ts, side) {
+    return {
+        side: side,
+        openQtyTotal: 0,
+        openCostTotal: 0,
+        openQty: 0,
+        openCost: 0,
+        closeQty: 0,
+        closeCost: 0,
+        pnl: 0,
+        fee: 0,
+        firstOpenTs: ts,
+        lastCloseTs: ts
+    };
+}
+function pushRoundTrade(trades, inst, posSide, round) {
+    if (!round || round.closeQty <= 0) return;
+    var entryPrice = round.openQtyTotal > 0 ? round.openCostTotal / round.openQtyTotal : 0;
+    var exitPrice = round.closeQty > 0 ? round.closeCost / round.closeQty : 0;
+    var pnlRatio = 0;
+    if (entryPrice > 0 && exitPrice > 0) {
+        pnlRatio = (round.side === "long" ? (exitPrice - entryPrice) : (entryPrice - exitPrice)) / entryPrice * 100;
     }
-    var resultArray = [];
-    var resKeys = Object.keys(result);
-    for (var rk = 0; rk < resKeys.length; rk++) {
-        resultArray.push(result[resKeys[rk]]);
-    }
-    resultArray.sort(function(a, b) { return b.ts - a.ts; });
-    return resultArray;
+    var instType = inst.split("-").length === 2 ? "现货" : (inst.includes("-SWAP") ? "永续合约" : "交割合约");
+    trades.push({
+        id: "okx:" + inst + ":" + round.side + ":" + round.firstOpenTs + ":" + round.lastCloseTs,
+        roundKey: inst + "|" + round.side + "|" + round.firstOpenTs,
+        source: "fetch",
+        instId: inst,
+        instType: instType,
+        side: round.side,
+        posSide: posSide,
+        entryPrice: entryPrice || exitPrice,
+        exitPrice: exitPrice,
+        size: round.closeQty,
+        pnl: round.pnl,
+        pnlRatio: pnlRatio,
+        fee: round.fee,
+        feeCcy: "USDT",
+        fillTime: String(round.lastCloseTs),
+        ts: round.lastCloseTs,
+        priceAction: null,
+        priceActionWin: null,
+        chanTheory: null,
+        chanTheoryWin: null,
+        notes: ""
+    });
 }
 async function loadTrades() {
     var saved = await loadAllTrades();
@@ -750,7 +817,8 @@ function renderTradeDetail(trade) {
     html += '<div class="detail-item"><div class="dl">方向</div><div class="dd"><span class="side-badge ' + trade.side + '">' + (trade.side === "long" ? "多单" : "空单") + '</span></div></div>';
     html += '<div class="detail-item"><div class="dl">类型</div><div class="dd">' + (trade.instType || "永续合约") + '</div></div>';
     html += '<div class="detail-item"><div class="dl">时间</div><div class="dd" style="font-size:13px">' + ts.toLocaleString("zh-CN") + '</div></div>';
-    html += '<div class="detail-item"><div class="dl">数量</div><div class="dd">' + trade.size + ' 张</div></div>';
+    var sizeUnit = trade.instType === "现货" ? " 币" : " 张";
+    html += '<div class="detail-item"><div class="dl">数量</div><div class="dd">' + trade.size + sizeUnit + '</div></div>';
     html += '<div class="detail-item"><div class="dl">入场价</div><div class="dd">$' + trade.entryPrice.toFixed(2) + '</div></div>';
     html += '<div class="detail-item"><div class="dl">出场价</div><div class="dd">$' + trade.exitPrice.toFixed(2) + '</div></div>';
     html += '<div class="detail-item"><div class="dl">盈亏</div><div class="dd ' + pnlClass + '">' + (trade.pnl >= 0 ? "+" : "") + trade.pnl.toFixed(2) + ' USDT</div></div>';
@@ -890,7 +958,7 @@ function renderTrades() {
         }
         if (!stratTags) stratTags = '<span class="text-muted" style="font-size:11px">—</span>';
         var notePreview = t.notes ? (t.notes.length > 20 ? t.notes.slice(0, 20) + "…" : t.notes) : "";
-        rows += '<tr class="' + (selected ? "selected" : "") + '" onclick="selectTrade(' + t.id + ')">';
+        rows += '<tr class="' + (selected ? "selected" : "") + '" data-trade-id="' + encodeURIComponent(String(t.id)) + '">';
         rows += '<td style="white-space:nowrap;font-size:12px">' + ts.toLocaleDateString("zh-CN") + '<br><span class="text-muted">' + ts.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" }) + '</span></td>';
         rows += '<td><strong>' + t.instId + '</strong><br><span class="text-muted" style="font-size:11px">' + (t.instType || "永续合约") + '</span></td>';
         rows += '<td><span class="side-badge ' + t.side + '">' + (t.side === "long" ? "多" : "空") + '</span></td>';
@@ -1189,6 +1257,11 @@ document.addEventListener("DOMContentLoaded", async function() {
             switchView(this.dataset.view);
         });
     }
+    document.getElementById("tradesBody").addEventListener("click", function(e) {
+        var row = e.target && e.target.closest ? e.target.closest("tr[data-trade-id]") : null;
+        if (!row) return;
+        selectTrade(decodeURIComponent(row.getAttribute("data-trade-id") || ""));
+    });
     await loadTrades();
     if (saved.apiKey) {
         state.connected = true;
@@ -1243,52 +1316,6 @@ async function testFillsEndpoint() {
     }
 }
 
-
-async function testFillsEndpoint() {
-    saveSettingsFromForm();
-    if (!state.settings.apiKey) { toast("请先填写API信息", "error"); return; }
-    var btn = document.getElementById("testFillsBtn");
-    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> 测试中...'; }
-    var el = document.getElementById("debugResult");
-    if (el) el.classList.remove("hidden");
-    var text = "";
-    try {
-        try {
-            var cfg = await okxRequest("GET", "/api/v5/account/config");
-            var uid = (cfg.data && cfg.data[0] && cfg.data[0].uid) || "?";
-            text += "OK 连接成功 (UID: " + uid + ")\n\n";
-        } catch(e) { text += "FAIL 连接失败: " + e.message + "\n\n"; }
-        
-        try {
-            text += "--- 尝试 /trade/fills (近期成交) ---\n";
-            var d1 = await okxRequest("GET", "/api/v5/trade/fills?instType=SWAP&limit=5");
-            text += "返回 code=" + d1.code + " 数据条数=" + (d1.data || []).length + "\n";
-            if (d1.data && d1.data.length > 0) {
-                text += "第一条字段: " + Object.keys(d1.data[0]).join(", ") + "\n";
-                text += "第一条JSON: " + JSON.stringify(d1.data[0]).slice(0, 400) + "\n";
-            }
-        } catch(e) { text += "FAIL /trade/fills 错误: " + e.message + "\n"; }
-        
-        text += "\n";
-        
-        try {
-            text += "--- 尝试 /trade/fills-history (历史成交) ---\n";
-            var d2 = await okxRequest("GET", "/api/v5/trade/fills-history?instType=SWAP&limit=5");
-            text += "返回 code=" + d2.code + " 数据条数=" + (d2.data || []).length + "\n";
-            if (d2.data && d2.data.length > 0) {
-                text += "第一条字段: " + Object.keys(d2.data[0]).join(", ") + "\n";
-                text += "第一条JSON: " + JSON.stringify(d2.data[0]).slice(0, 400) + "\n";
-            }
-        } catch(e) { text += "FAIL /fills-history 错误: " + e.message + "\n"; }
-        
-        if (el) el.textContent = text;
-        toast("调试完成，查看下方输出", "info");
-    } catch(e) {
-        if (el) el.textContent = "调试出错: " + e.message;
-    } finally {
-        if (btn) { btn.disabled = false; btn.textContent = "调试API"; }
-    }
-}
 
 </script>
 </body>
