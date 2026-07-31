@@ -1,0 +1,1295 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>OKX 交易分析系统</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans SC",sans-serif;background:#0b0e14;color:#e2e8f0;min-height:100vh;overflow-x:hidden}.app-header{background:#131722;border-bottom:1px solid #2a3248;padding:0 24px;height:56px;display:flex;align-items:center;gap:32px;position:sticky;top:0;z-index:100}.logo{font-size:18px;font-weight:700;display:flex;align-items:center;gap:8px}.logo span{color:#448aff}.nav-tabs{display:flex;gap:4px;flex:1}.nav-tab{padding:8px 16px;border:none;background:none;color:#8892a6;cursor:pointer;border-radius:4px;font-size:14px;font-weight:500;transition:0.15s ease}.nav-tab:hover{color:#e2e8f0;background:#232a3b}.nav-tab.active{color:#448aff;background:rgba(68,138,255,0.12)}.header-right{display:flex;align-items:center;gap:12px}.connection-status{display:flex;align-items:center;gap:6px;font-size:12px;padding:4px 10px;border-radius:12px;background:#1a1f2e;border:1px solid #2a3248}.connection-status .dot{width:8px;height:8px;border-radius:50%}.connected .dot{background:#00c853}.disconnected .dot{background:#5a6378}.main-content{padding:20px 24px;max-width:1400px;margin:0 auto}.settings-panel{background:#1a1f2e;border:1px solid #2a3248;border-radius:8px;padding:24px;max-width:560px;margin:40px auto}.settings-panel h2{font-size:20px;margin-bottom:20px}.form-group{margin-bottom:16px}.form-group label{display:block;font-size:13px;color:#8892a6;margin-bottom:6px;font-weight:500}.form-group input,.form-group textarea{width:100%;padding:10px 12px;background:#0b0e14;border:1px solid #2a3248;border-radius:4px;color:#e2e8f0;font-size:14px;outline:none;transition:0.15s ease}.form-group input:focus,.form-group textarea:focus{border-color:#448aff;box-shadow:0 0 0 2px rgba(68,138,255,0.12)}.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 18px;border:none;border-radius:4px;font-size:14px;font-weight:500;cursor:pointer;transition:0.15s ease;color:#fff}.btn:disabled{opacity:0.5;cursor:not-allowed}.btn-primary{background:#448aff}.btn-primary:hover{background:#2979ff}.btn-success{background:#00c853;color:#111}.btn-danger{background:#ff5252}.btn-outline{background:none;border:1px solid #2a3248;color:#8892a6}.btn-outline:hover{border-color:#8892a6;color:#e2e8f0}.btn-sm{padding:5px 12px;font-size:12px}.btn-group{display:flex;gap:8px;flex-wrap:wrap}.dashboard-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:24px}.stat-card{background:#1a1f2e;border:1px solid #2a3248;border-radius:8px;padding:16px}.stat-card .label{font-size:12px;color:#8892a6;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px}.stat-card .value{font-size:24px;font-weight:700}.stat-card .sub{font-size:12px;margin-top:4px}.text-green{color:#00c853}.text-red{color:#ff5252}.text-blue{color:#448aff}.text-muted{color:#8892a6}.text-yellow{color:#ffd740}.text-purple{color:#aa66ff}.table-container{background:#1a1f2e;border:1px solid #2a3248;border-radius:8px;overflow:hidden}.table-toolbar{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid #2a3248;flex-wrap:wrap}.table-toolbar .search-input{flex:1;min-width:180px;padding:8px 12px;background:#0b0e14;border:1px solid #2a3248;border-radius:4px;color:#e2e8f0;font-size:13px;outline:none}table{width:100%;border-collapse:collapse;font-size:13px}thead th{background:#131722;padding:10px 12px;text-align:left;font-weight:600;color:#8892a6;font-size:12px;white-space:nowrap;border-bottom:1px solid #2a3248;cursor:pointer;user-select:none;position:sticky;top:0}tbody tr{border-bottom:1px solid #2a3248;cursor:pointer;transition:0.15s ease}tbody tr:hover{background:#232a3b}tbody tr.selected{background:rgba(68,138,255,0.12)}tbody td{padding:10px 12px;vertical-align:middle}.pnl-badge{display:inline-block;padding:2px 8px;border-radius:3px;font-weight:600;font-size:12px}.positive{background:rgba(0,200,83,0.12);color:#00c853}.negative{background:rgba(255,82,82,0.12);color:#ff5252}.zero{background:rgba(255,215,64,0.12);color:#ffd740}.side-badge{display:inline-block;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:600}.long{background:rgba(0,200,83,0.12);color:#00c853}.short{background:rgba(255,82,82,0.12);color:#ff5252}.strategy-tag{display:inline-block;padding:2px 6px;border-radius:3px;font-size:11px;margin:1px}.pa{background:rgba(68,138,255,0.12);color:#448aff}.chan{background:#aa66ff;color:#fff}.detail-panel{background:#1a1f2e;border:1px solid #2a3248;border-radius:8px;margin-top:16px;padding:24px}.detail-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:20px}.detail-item .dl{font-size:11px;color:#5a6378;margin-bottom:2px}.detail-item .dd{font-size:15px;font-weight:600}.strategy-section{margin-bottom:20px;padding:16px;background:#0b0e14;border-radius:4px}.tag-btn{padding:6px 14px;border:1px solid #2a3248;border-radius:4px;background:none;color:#8892a6;cursor:pointer;font-size:12px;transition:0.15s ease}.tag-btn:hover{border-color:#8892a6}.tag-btn.active-pa{background:rgba(68,138,255,0.12);color:#448aff;border-color:#448aff}.tag-btn.active-chan{background:rgba(170,102,255,0.2);color:#aa66ff;border-color:#aa66ff}.tag-btn.win{background:rgba(0,200,83,0.12);color:#00c853;border-color:#00c853}.tag-btn.loss{background:rgba(255,82,82,0.12);color:#ff5252;border-color:#ff5252}.notes-area{width:100%;min-height:80px;padding:10px 12px;background:#0b0e14;border:1px solid #2a3248;border-radius:4px;color:#e2e8f0;font-size:13px;resize:vertical;outline:none}.notes-area:focus{border-color:#448aff}.chart-container{background:#1a1f2e;border:1px solid #2a3248;border-radius:8px;padding:20px;margin-bottom:16px}.analysis-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}@media(max-width:900px){.analysis-grid{grid-template-columns:1fr}}.win-rate-bar{display:flex;align-items:center;gap:12px;margin-bottom:10px}.win-rate-bar .label{font-size:13px;min-width:100px;color:#8892a6}.win-rate-bar .track{flex:1;height:24px;background:#0b0e14;border-radius:4px;overflow:hidden}.win-rate-bar .fill{height:100%;border-radius:4px;transition:width 0.5s ease}.fill.green{background:#00c853}.fill.red{background:#ff5252}.fill.blue{background:#448aff}.fill.orange{background:#ff9100}.fill.purple{background:#aa66ff}.win-rate-bar .pct{font-size:13px;font-weight:600;min-width:50px;text-align:right}.pnl-chart{height:200px;display:flex;align-items:flex-end;gap:2px}.pnl-chart .bar{flex:1;min-width:4px;border-radius:2px 2px 0 0;transition:height 0.3s ease}.bar.pos{background:#00c853}.bar.neg{background:#ff5252}.toast-container{position:fixed;top:16px;right:16px;z-index:1000;display:flex;flex-direction:column;gap:8px}.toast{padding:12px 20px;border-radius:4px;color:#fff;font-size:13px;box-shadow:0 2px 8px rgba(0,0,0,0.3);max-width:360px;animation:fadeIn 0.3s ease}.toast.success{background:#1b5e20}.toast.error{background:#b71c1c}.toast.info{background:#0d47a1}.toast.warning{background:#e65100}@keyframes fadeIn{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:translateX(0)}}.spinner{display:inline-block;width:16px;height:16px;border:2px solid #2a3248;border-top-color:#448aff;border-radius:50%;animation:spin 0.6s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}.hidden{display:none!important}.mt-8{margin-top:8px}.mt-16{margin-top:16px}.mb-8{margin-bottom:8px}.mb-16{margin-bottom:16px}.flex{display:flex}.flex-between{display:flex;justify-content:space-between;align-items:center}.gap-8{gap:8px}.empty-state{text-align:center;padding:48px 24px;color:#8892a6}.empty-state h3{color:#8892a6;margin-bottom:8px}.empty-state p{font-size:13px;max-width:400px;margin:0 auto;line-height:1.6}::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:#0b0e14}::-webkit-scrollbar-thumb{background:#2a3248;border-radius:3px}@media(max-width:600px){.app-header{padding:0 12px;gap:12px}.nav-tab{padding:8px 10px;font-size:12px}.main-content{padding:12px}.dashboard-grid{grid-template-columns:repeat(2,1fr)}.settings-panel{margin:20px 12px}}</style>
+</head>
+<body>
+<div class="app-header">
+<div class="logo">📊 <span>TradeAnalyzer</span></div>
+<div class="nav-tabs" id="navTabs">
+<button class="nav-tab active" data-view="dashboard">仪表盘</button>
+<button class="nav-tab" data-view="trades">交易列表</button>
+<button class="nav-tab" data-view="analysis">统计分析</button>
+<button class="nav-tab" data-view="settings">设置</button>
+</div>
+<div class="header-right">
+<span class="connection-status disconnected" id="connectionStatus"><span class="dot"></span><span id="statusText">未连接</span></span>
+<button class="btn btn-sm btn-outline" onclick="toggleSettings()">⚙</button>
+</div>
+</div>
+<div class="main-content">
+<div id="viewSettings" class="hidden">
+<div class="settings-panel">
+<h2>OKX API 配置</h2>
+<p style="font-size:13px;color:#8892a6;margin-bottom:20px;line-height:1.6">请输入您在 OKX 交易所创建的 API Key 信息。建议使用仅拥有读取权限的 API Key，并绑定 IP 白名单。</p>
+<div class="form-group"><label>API Key</label><input type="text" id="apiKey" placeholder="例如: 1234abcd-5678-..." autocomplete="off"></div>
+<div class="form-group"><label>Secret Key</label><input type="password" id="apiSecret" placeholder="您的 Secret Key" autocomplete="off"></div>
+<div class="form-group"><label>Passphrase</label><input type="password" id="apiPassphrase" placeholder="API Key 的 Passphrase" autocomplete="off"></div>
+<div class="btn-group">
+<button class="btn btn-primary" onclick="testConnection()" id="testBtn">测试连接</button>
+<button class="btn btn-success" onclick="fetchAllTrades()" id="fetchBtn">获取交易记录</button>
+</div>
+<div id="connectionResult" class="mt-16 hidden"></div>
+<hr style="border-color:#2a3248;margin:24px 0">
+<h3 style="font-size:15px;margin-bottom:12px">数据管理</h3>
+<div class="btn-group">
+<button class="btn btn-outline btn-sm" onclick="exportData()">导出数据</button>
+<button class="btn btn-outline btn-sm" onclick="document.getElementById('importFile').click()">导入数据</button>
+<input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+<button class="btn btn-danger btn-sm" onclick="clearAllData()">清除数据</button>
+</div>
+<div class="mt-16" style="font-size:12px;color:#5a6378"><span id="dataStats">本地数据: 0 条交易记录</span></div>
+<button class="btn btn-sm btn-warning" onclick="testFillsEndpoint()" id="testFillsBtn" style="margin-top:10px;width:100%">调试API (查看原始数据)</button>
+</div>
+</div>
+<div id="debugResult" class="hidden" style="background:#1e1e2e;color:#a0e8a0;padding:12px;border-radius:6px;font-family:monospace;font-size:12px;white-space:pre-wrap;margin-bottom:12px;max-height:400px;overflow:auto"></div>
+<div id="viewDashboard">
+<div class="dashboard-grid" id="dashboardStats">
+<div class="stat-card"><div class="label">总交易数</div><div class="value" id="statTotalTrades">0</div><div class="sub text-muted">所有已平仓交易</div></div>
+<div class="stat-card"><div class="label">总盈亏</div><div class="value" id="statTotalPnl">0.00 USDT</div><div class="sub" id="statTotalPnlSub">&mdash;</div></div>
+<div class="stat-card"><div class="label">总体胜率</div><div class="value" id="statWinRate">0%</div><div class="sub" id="statWinRateSub">&mdash;</div></div>
+<div class="stat-card"><div class="label">多单胜率</div><div class="value" id="statLongWinRate">0%</div><div class="sub" id="statLongWinRateSub">&mdash;</div></div>
+<div class="stat-card"><div class="label">空单胜率</div><div class="value" id="statShortWinRate">0%</div><div class="sub" id="statShortWinRateSub">&mdash;</div></div>
+<div class="stat-card"><div class="label">平均盈亏比</div><div class="value" id="statAvgRrr">&mdash;</div><div class="sub text-muted">盈利/亏损 平均比</div></div>
+<div class="stat-card"><div class="label">价格行为学胜率</div><div class="value" id="statPaWinRate">&mdash;</div><div class="sub" id="statPaSub">标记 0 笔交易</div></div>
+<div class="stat-card"><div class="label">缠论胜率</div><div class="value" id="statChanWinRate">&mdash;</div><div class="sub" id="statChanSub">标记 0 笔交易</div></div>
+</div>
+<div class="chart-container">
+<div class="flex-between mb-16"><h3>最近盈亏分布</h3><span style="background:rgba(68,138,255,0.12);color:#448aff;padding:2px 8px;border-radius:10px;font-size:11px">最近 30 笔</span></div>
+<div class="pnl-chart" id="pnlChart"></div>
+</div>
+</div>
+<div id="viewTrades" class="hidden">
+<div class="table-container">
+<div class="table-toolbar">
+<input type="text" class="search-input" placeholder="搜索交易对、备注..." id="tradeSearch" oninput="renderTrades()">
+<select id="sideFilter" onchange="renderTrades()" style="padding:8px 12px;background:#0b0e14;border:1px solid #2a3248;border-radius:4px;color:#e2e8f0;font-size:13px"><option value="all">全部方向</option><option value="long">多单</option><option value="short">空单</option></select>
+<select id="pnlFilter" onchange="renderTrades()" style="padding:8px 12px;background:#0b0e14;border:1px solid #2a3248;border-radius:4px;color:#e2e8f0;font-size:13px"><option value="all">全部盈亏</option><option value="win">盈利</option><option value="loss">亏损</option></select>
+<select id="strategyFilter" onchange="renderTrades()" style="padding:8px 12px;background:#0b0e14;border:1px solid #2a3248;border-radius:4px;color:#e2e8f0;font-size:13px"><option value="all">全部策略</option><option value="pa">价格行为学</option><option value="chan">缠论</option><option value="unmarked">未标记</option></select>
+<span style="font-size:12px;color:#8892a6" id="tradeCount">共 0 笔</span>
+</div>
+<div style="overflow-x:auto">
+<table>
+<thead><tr>
+<th onclick="sortTrades('time')">时间</th>
+<th onclick="sortTrades('instrument')">交易对</th>
+<th onclick="sortTrades('side')">方向</th>
+<th onclick="sortTrades('size')">数量</th>
+<th>入场价</th>
+<th>出场价</th>
+<th onclick="sortTrades('pnl')">盈亏</th>
+<th>盈亏比</th>
+<th>策略</th>
+<th>备注</th>
+</tr></thead>
+<tbody id="tradesBody"></tbody>
+</table>
+</div>
+<div id="tradesEmpty" class="empty-state" style="display:none"><h3>暂无交易数据</h3><p>在设置页面配置 OKX API 获取交易记录，或导入已有数据。</p></div>
+</div>
+<div id="tradeDetail" class="hidden">
+<div class="detail-panel">
+<div class="flex-between mb-16"><h3 id="detailTitle">交易详情</h3><button class="btn btn-sm btn-outline" onclick="closeDetail()">关闭</button></div>
+<div class="detail-grid" id="detailGrid"></div>
+<div class="strategy-section">
+<h4>策略标记</h4>
+<div class="strategy-toggles">
+<button class="tag-btn" id="paTagBtn" onclick="toggleStrategy('priceAction')">价格行为学</button>
+<button class="tag-btn" id="chanTagBtn" onclick="toggleStrategy('chanTheory')">缠论</button>
+<button class="tag-btn" id="paWinBtn" onclick="toggleWinLoss('paWin')" style="display:none">价格行为学 ?</button>
+<button class="tag-btn" id="chanWinBtn" onclick="toggleWinLoss('chanWin')" style="display:none">缠论 ?</button>
+<span id="strategyStatus" style="font-size:12px;color:#8892a6"></span>
+</div>
+</div>
+<div>
+<h4 style="font-size:14px;color:#8892a6;margin-bottom:8px">交易备注</h4>
+<textarea class="notes-area" id="tradeNotes" placeholder="记录交易心得、入场理由、止盈止损设置等..." oninput="onNotesChange()"></textarea>
+</div>
+<div class="mt-8 flex gap-8"><button class="btn btn-sm btn-danger" onclick="deleteTrade()">删除此交易</button></div>
+</div>
+</div>
+</div>
+<div id="viewAnalysis" class="hidden">
+<div class="analysis-grid">
+<div class="chart-container"><h3>方向胜率</h3>
+<div class="win-rate-bar"><span class="label">多单</span><div class="track"><div class="fill green" id="longWinFill" style="width:0%"></div></div><span class="pct" id="longWinPct">0%</span></div>
+<div class="win-rate-bar"><span class="label">空单</span><div class="track"><div class="fill red" id="shortWinFill" style="width:0%"></div></div><span class="pct" id="shortWinPct">0%</span></div>
+<div class="win-rate-bar"><span class="label">总计</span><div class="track"><div class="fill blue" id="totalWinFill" style="width:0%"></div></div><span class="pct" id="totalWinPct">0%</span></div>
+</div>
+<div class="chart-container"><h3>策略胜率</h3>
+<div class="win-rate-bar"><span class="label">价格行为学</span><div class="track"><div class="fill orange" id="paWinFill" style="width:0%"></div></div><span class="pct" id="paWinPct">0%</span></div>
+<div class="win-rate-bar"><span class="label">缠论</span><div class="track"><div class="fill purple" id="chanWinFill" style="width:0%"></div></div><span class="pct" id="chanWinPct">0%</span></div>
+<div class="win-rate-bar"><span class="label">未标记</span><div class="track"><div class="fill" style="background:#5a6378;height:100%;width:100%"></div></div><span class="pct" id="unmarkedPct">0%</span></div>
+</div>
+<div class="chart-container"><h3>盈亏分布</h3>
+<div class="win-rate-bar"><span class="label">盈利总额</span><span class="pct text-green" id="totalProfit">0.00</span></div>
+<div class="win-rate-bar"><span class="label">亏损总额</span><span class="pct text-red" id="totalLoss">0.00</span></div>
+<div class="win-rate-bar"><span class="label">最大盈利</span><span class="pct text-green" id="maxProfit">0.00</span></div>
+<div class="win-rate-bar"><span class="label">最大亏损</span><span class="pct text-red" id="maxLoss">0.00</span></div>
+<div class="win-rate-bar"><span class="label">平均盈利</span><span class="pct text-green" id="avgProfit">0.00</span></div>
+<div class="win-rate-bar"><span class="label">平均亏损</span><span class="pct text-red" id="avgLoss">0.00</span></div>
+</div>
+<div class="chart-container"><h3>交易频率</h3>
+<div style="font-size:13px">
+<div class="mb-8 flex-between"><span class="text-muted">每日平均交易</span><span id="avgDailyTrades">&mdash;</span></div>
+<div class="mb-8 flex-between"><span class="text-muted">每周平均交易</span><span id="avgWeeklyTrades">&mdash;</span></div>
+<div class="mb-8 flex-between"><span class="text-muted">最活跃交易对</span><span id="topInstrument">&mdash;</span></div>
+<div class="mb-8 flex-between"><span class="text-muted">交易天数</span><span id="tradingDays">&mdash;</span></div>
+<div class="mb-8 flex-between"><span class="text-muted">连续盈利</span><span id="consecutiveWins" class="text-green">&mdash;</span></div>
+<div class="mb-8 flex-between"><span class="text-muted">连续亏损</span><span id="consecutiveLosses" class="text-red">&mdash;</span></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="toast-container" id="toastContainer"></div>
+<script>
+/*
+ * OKX Trade Analyzer - Full Application Logic
+ * This script handles: IndexedDB persistence, OKX API communication,
+ * trade rendering, strategy analysis, and UI management.
+ */
+const DB_NAME = "okxTradeAnalyzer";
+const DB_VER = 1;
+const STORE = "trades";
+const SETTINGS_KEY = "settings_v2";
+let state = {
+    trades: [],
+    filteredTrades: [],
+    selectedTradeId: null,
+    currentView: "dashboard",
+    sortField: "time",
+    sortDir: -1,
+    isLoading: false,
+    settings: { apiKey: "", apiSecret: "", apiPassphrase: "" },
+    connected: false
+};
+function openDB() {
+    return new Promise(function(resolve, reject) {
+        var req = indexedDB.open(DB_NAME, DB_VER);
+        req.onupgradeneeded = function(e) {
+            var db = e.target.result;
+            if (!db.objectStoreNames.contains(STORE)) {
+                db.createObjectStore(STORE, { keyPath: "id" });
+            }
+        };
+        req.onsuccess = function() { resolve(req.result); };
+        req.onerror = function() { reject(req.error); };
+    });
+}
+function saveSettings(settings) {
+    try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); } catch(e) {}
+}
+function loadSettings() {
+    try {
+        var raw = localStorage.getItem(SETTINGS_KEY);
+        return raw ? JSON.parse(raw) : { apiKey: "", apiSecret: "", apiPassphrase: "" };
+    } catch(e) { return { apiKey: "", apiSecret: "", apiPassphrase: "" }; }
+}
+function saveTrade(trade) {
+    return openDB().then(function(db) {
+        return new Promise(function(resolve, reject) {
+            var tx = db.transaction(STORE, "readwrite");
+            tx.objectStore(STORE).put(trade);
+            tx.oncomplete = function() { resolve(); };
+            tx.onerror = function() { reject(tx.error); };
+        });
+    });
+}
+function loadAllTrades() {
+    return openDB().then(function(db) {
+        return new Promise(function(resolve, reject) {
+            var tx = db.transaction(STORE, "readonly");
+            var req = tx.objectStore(STORE).getAll();
+            req.onsuccess = function() { resolve(req.result); };
+            req.onerror = function() { reject(req.error); };
+        });
+    });
+}
+function deleteTradeById(id) {
+    return openDB().then(function(db) {
+        return new Promise(function(resolve, reject) {
+            var tx = db.transaction(STORE, "readwrite");
+            tx.objectStore(STORE).delete(id);
+            tx.oncomplete = function() { resolve(); };
+            tx.onerror = function() { reject(tx.error); };
+        });
+    });
+}
+function deleteAllTrades() {
+    return openDB().then(function(db) {
+        return new Promise(function(resolve, reject) {
+            var tx = db.transaction(STORE, "readwrite");
+            tx.objectStore(STORE).clear();
+            tx.oncomplete = function() { resolve(); };
+            tx.onerror = function() { reject(tx.error); };
+        });
+    });
+}
+
+function buildSign(timestamp, method, path, body) {
+    var preHash = timestamp + method + path + (body || "");
+    return hmacSHA256(preHash, state.settings.apiSecret);
+}
+async function hmacSHA256(message, secret) {
+    var enc = new TextEncoder();
+    var key = await crypto.subtle.importKey("raw", enc.encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+    var sig = await crypto.subtle.sign("HMAC", key, enc.encode(message));
+    return btoa(String.fromCharCode.apply(null, new Uint8Array(sig)));
+}
+async function okxRequest(method, path, body) {
+    var s = state.settings;
+    if (!s.apiKey || !s.apiSecret || !s.apiPassphrase) {
+        throw new Error("请先配置完整的 API 信息");
+    }
+   var ts = new Date().toISOString();
+    // 构造 URL 对象确保参数正确编码
+    var urlObj = new URL("https://www.okx.com" + path);
+    var signPath = urlObj.pathname;
+    // 有些 exchange 要求签名包含 query parameters，有些不要求，试两种
+    var sig = await buildSign(ts, method, urlObj.pathname + urlObj.search, body);
+   console.log("[API] Calling", method, path);
+    console.log("[API] Full URL:", urlObj.toString());
+    // GET 请求不加 Content-Type，OKX 50113 可能是被这个头触发的
+    var reqHeaders = {
+        "OK-ACCESS-KEY": s.apiKey,
+        "OK-ACCESS-SIGN": sig,
+        "OK-ACCESS-TIMESTAMP": ts,
+        "OK-ACCESS-PASSPHRASE": s.apiPassphrase
+    };
+   if (method !== "GET") { reqHeaders["Content-Type"] = "application/json"; }
+   var resp = await fetch(urlObj.toString(), {
+      method: method,
+        headers: reqHeaders
+   });
+   console.log("[API] HTTP status:", resp.status, resp.statusText);
+    var data = await resp.json();
+    console.log("[API] Response code:", data.code, "msg:", data.msg, "data.length:", (data.data || []).length);
+    if (data.code !== "0") {
+        throw new Error("OKX API 错误 [" + data.code + "]: " + data.msg);
+    }
+    return data;
+}
+function saveSettingsFromForm() {
+    var k = document.getElementById("apiKey").value.trim();
+    var s = document.getElementById("apiSecret").value.trim();
+    var p = document.getElementById("apiPassphrase").value.trim();
+    state.settings = { apiKey: k, apiSecret: s, apiPassphrase: p };
+    saveSettings(state.settings);
+}
+function updateConnectionStatus() {
+    var el = document.getElementById("connectionStatus");
+    var txt = document.getElementById("statusText");
+    if (state.connected) {
+        el.className = "connection-status connected";
+        txt.textContent = "已连接";
+    } else if (state.settings.apiKey) {
+        el.className = "connection-status disconnected";
+        txt.textContent = "待测试";
+    } else {
+        el.className = "connection-status disconnected";
+        txt.textContent = "未连接";
+    }
+}
+async function testConnection() {
+    var btn = document.getElementById("testBtn");
+    var res = document.getElementById("connectionResult");
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> 测试中...';
+    res.classList.add("hidden");
+    saveSettingsFromForm();
+    try {
+        var data = await okxRequest("GET", "/api/v5/account/config");
+        var uid = (data.data && data.data[0] && data.data[0].uid) || "—";
+        res.innerHTML = '<div style="display:flex;align-items:center;gap:8px;padding:12px;background:rgba(0,200,83,0.12);border-radius:4px"><span style="color:#00c853;font-size:20px">✓</span><div><strong style="color:#00c853">连接成功</strong><br><span style="font-size:12px;color:#8892a6">UID: ' + uid + '</span></div></div>';
+        res.classList.remove("hidden");
+        state.connected = true;
+        updateConnectionStatus();
+    } catch (e) {
+        res.innerHTML = '<div style="display:flex;align-items:center;gap:8px;padding:12px;background:rgba(255,82,82,0.12);border-radius:4px"><span style="color:#ff5252;font-size:20px">✕</span><div><strong style="color:#ff5252">连接失败</strong><br><span style="font-size:12px;color:#8892a6">' + e.message + '</span></div></div>';
+        res.classList.remove("hidden");
+        state.connected = false;
+        updateConnectionStatus();
+    } finally {
+        btn.disabled = false;
+        btn.textContent = "测试连接";
+    }
+}
+async function testConnShortcut() { return testConnection(); }
+async function fetchAllTrades() {
+    var btn = document.getElementById("fetchBtn");
+    saveSettingsFromForm();
+    if (!state.settings.apiKey || !state.settings.apiSecret || !state.settings.apiPassphrase) {
+        toast("请先填写完整的 API 信息", "error");
+        return;
+    }
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> 获取中...';
+    console.log("[Fetch] Starting...");
+        try {
+           var allFills = [];
+           var after = "";
+            var tries = []; // 记录尝试过的请求
+           
+           // First try /api/v5/trade/fills (recent fills)
+            console.log("[Fetch] Fetching ALL recent fills (no instType filter)...");
+            try {
+                var allRecentData = await okxRequest("GET", "/api/v5/trade/fills?limit=100");
+                var allRecentFills = allRecentData.data || [];
+                console.log("[Fetch] All recent fills: got", allRecentFills.length, "fills");
+                if (allRecentFills.length > 0) {
+                    var instTypes = [...new Set(allRecentFills.map(function(f) { return f.instType || f.instId?.split('-')[1]; }).filter(Boolean))];
+                    console.log("[Fetch] Found instrument types:", instTypes.join(", "));
+                    tries.push("fills (全部) → " + allRecentFills.length + " 笔");
+                    allFills = allFills.concat(allRecentFills);
+                } else {
+                    tries.push("fills (全部) → 0 笔");
+                }
+            } catch(e) { console.log("[Fetch] All fills error:", e.message); tries.push("fills 全部失败: " + e.message); }
+            
+            // 再尝试按类型获取
+           console.log("[Fetch] Fetching recent SWAP fills...");
+           try {
+               var recentData = await okxRequest("GET", "/api/v5/trade/fills?instType=SWAP&limit=100");
+               var recentFills = recentData.data || [];
+               console.log("[Fetch] Recent SWAP fills: got", recentFills.length, "fills");
+               if (recentFills.length > 0) {
+                   console.log("[Fetch] First recent fill:", JSON.stringify(recentFills[0]).slice(0, 300));
+                   allFills = allFills.concat(recentFills);
+               }
+            } catch(e) { console.log("[Fetch] Recent SWAP error:", e.message); tries.push("SWAP fills失败"); }
+           if (allFills.length === 0) { toast("fills 接口返回空，正在尝试 fills-history...", "info"); }
+           
+           // Then try fills-history (historical fills)
+           console.log("[Fetch] Fetching SWAP history...");
+           for (var pg = 0; pg < 10; pg++) {
+                var path = "/api/v5/trade/fills-history?instType=SWAP&limit=100";
+               if (after) path += "&after=" + after;
+                try {
+                    var data = await okxRequest("GET", path);
+                    console.log("[Fetch] SWAP history response code=" + data.code + " data.length=" + (data.data || []).length);
+                    var fills = data.data || [];
+                    console.log("[Fetch] SWAP page", pg, "got", fills.length, "fills");
+                    if (fills.length === 0) break;
+                    allFills = allFills.concat(fills);
+                    if (fills.length < 100) break;
+                    after = fills[fills.length - 1].fillId;
+                    btn.innerHTML = '<span class="spinner"></span> 获取中... (' + allFills.length + ' 笔)';
+               } catch(e) {
+                   console.log("[Fetch] SWAP history error:", e.message);
+                    toast("SWAP history 请求失败: " + e.message, "error");
+                   break;
+               }
+            }
+            try {
+               console.log("[Fetch] Fetching SPOT...");
+                var sp = "/api/v5/trade/fills-history?instType=SPOT&limit=100";
+               var sa = "";
+                for (var sg = 0; sg < 5; sg++) {
+                    var su = sp;
+                    if (sa) su += "&after=" + sa;
+                    var sd = await okxRequest("GET", su);
+                    var sf = sd.data || [];
+                    console.log("[Fetch] SPOT page", sg, "got", sf.length, "fills");
+                    if (sf.length === 0) break;
+                    allFills = allFills.concat(sf);
+                    if (sf.length < 100) break;
+                    sa = sf[sf.length - 1].fillId;
+                }
+            } catch (e) { console.log("[Fetch] SPOT error:", e.message); toast("SPOT 请求失败: " + e.message, "error"); }
+           try {
+               console.log("[Fetch] Fetching FUTURES...");
+                var fd = await okxRequest("GET", "/api/v5/trade/fills-history?instType=FUTURES&limit=100");
+                var ff = fd.data || [];
+                console.log("[Fetch] FUTURES got", ff.length, "fills");
+                allFills = allFills.concat(ff);
+           } catch (e) { console.log("[Fetch] FUTURES error:", e.message); toast("FUTURES 请求失败: " + e.message, "error"); }
+           // 如果 fills 接口因权限 50113 失败，降级使用 orders-history 接口
+           if (allFills.length === 0) {
+                // === 关键测试：不带 query 参数 vs 带 query 参数 ===
+                try { var np = await okxRequest("GET", "/api/v5/account/config");
+                    toast("account/config (无参数) 可用 ✓", "info");
+                } catch(e) { toast("account/config 无参数也失败: " + e.message, "warning"); }
+                
+                // 测试不带任何参数的 fills
+                try { await okxRequest("GET", "/api/v5/trade/fills");
+                    toast("fills (无参数) 可用 ✓", "info");
+                } catch(e) { toast("fills 无参数失败: " + e.message, "warning"); }
+                
+                // 测试不带参数的 positions
+                try { await okxRequest("GET", "/api/v5/account/positions");
+                    toast("positions (无参数) 可用 ✓", "info");
+                } catch(e) { toast("positions 无参数失败: " + e.message, "warning"); }
+                
+                // 测试只带一个参数
+                try { await okxRequest("GET", "/api/v5/trade/fills?instType=SWAP");
+                    toast("fills?instType=SWAP (一个参数) 可用 ✓", "info");
+                } catch(e) { toast("fills?instType=SWAP 失败: " + e.message, "warning"); }
+                
+                // 先测试一下各个 trade 类接口的权限状态
+                try { await okxRequest("GET", "/api/v5/trade/orders-pending?instType=SWAP&limit=1");
+                    toast("orders-pending 可用 ✓", "info");
+                } catch(e) { toast("orders-pending 失败: " + e.message, "warning"); }
+                try { await okxRequest("GET", "/api/v5/account/positions?instType=SWAP");
+                    toast("positions 可用 ✓", "info"); 
+                } catch(e) { toast("positions 失败: " + e.message, "warning"); }
+                try { await okxRequest("GET", "/api/v5/trade/orders-history?instType=SWAP&limit=1&state=filled");
+                    toast("orders-history 可用 ✓", "info");
+                } catch(e) { toast("orders-history 失败: " + e.message, "warning"); }
+                
+               toast("fills 接口权限不足，尝试使用 orders-history 接口...", "info");
+                try {
+                    var ordAfter = "";
+                    for (var og = 0; og < 10; og++) {
+                        var ordPath = "/api/v5/trade/orders-history?instType=SWAP&limit=100&state=filled";
+                        if (ordAfter) ordPath += "&after=" + ordAfter;
+                        var ordData = await okxRequest("GET", ordPath);
+                        var ords = ordData.data || [];
+                        console.log("[Fetch] Orders-history page", og, "got", ords.length, "orders");
+                        if (ords.length === 0) break;
+                        for (var oi = 0; oi < ords.length; oi++) {
+                            var ord = ords[oi];
+                            if (parseFloat(ord.accFillSz || 0) > 0) {
+                                var fillFromOrder = {
+                                    instId: ord.instId,
+                                    instType: ord.instType,
+                                    side: ord.side,
+                                    posSide: ord.posSide || "net",
+                                    sz: ord.accFillSz,
+                                    px: ord.avgPx || ord.px,
+                                    fillPnl: ord.pnl || "0",
+                                    pnl: ord.pnl || "0",
+                                    fillTime: ord.cTime || ord.uTime,
+                                    ts: ord.cTime || ord.uTime,
+                                    fillId: ord.ordId + "_" + (ord.fillId || "0"),
+                                    ordId: ord.ordId,
+                                    fee: ord.fee || "0",
+                                    feeCcy: ord.feeCcy || "USDT",
+                                    state: ord.state
+                                };
+                                allFills.push(fillFromOrder);
+                            }
+                        }
+                        if (ords.length < 100) break;
+                        ordAfter = ords[ords.length - 1].ordId;
+                        btn.innerHTML = '<span class="spinner"></span> 获取中... (' + allFills.length + ' 笔)';
+                    }
+                    console.log("[Fetch] Orders-history total extra fills:", allFills.length);
+                } catch(e) {
+                    console.log("[Fetch] Orders-history error:", e.message);
+                    toast("orders-history 也失败: " + e.message + " — 请完成 OKX 自交易开发者认证", "warning");
+                }
+            }
+           console.log("[Fetch] Total fills:", allFills.length);
+            if (allFills.length > 0) {
+                console.log("[Fetch] Sample:", JSON.stringify(allFills[0]).slice(0, 500));
+            }
+            if (allFills.length > 0) {
+                var pnlCheck = {zero:0, nonzero:0, first10pnl:[]};
+                for(var pi=0; pi<Math.min(allFills.length, 1000); pi++) {
+                    var pf = parseFloat(allFills[pi].pnl || 0);
+                    if(pf === 0) pnlCheck.zero++;
+                    else { pnlCheck.nonzero++; if(pnlCheck.nonzero <= 10) pnlCheck.first10pnl.push(pf); }
+                }
+                console.log("[Fetch] PnL stats: zero=" + pnlCheck.zero + " nonzero=" + pnlCheck.nonzero);
+                if(pnlCheck.nonzero > 0) console.log("[Fetch] Sample non-zero PnL:", JSON.stringify(pnlCheck.first10pnl));
+                if(allFills[0]) console.log("[Fetch] Full first fill fields:", Object.keys(allFills[0]).join(","));
+                var f0 = allFills[0];
+                console.log("[Fetch] pnl="+f0.pnl+" fillPnl="+f0.fillPnl+" fillPnl2="+f0.fillPnl2+" pnlRatio="+f0.pnlRatio);
+                console.log("[Fetch] side="+f0.side+" posSide="+f0.posSide+" ordType="+f0.ordType);
+                console.log("[Fetch] Full JSON:", JSON.stringify(allFills[0]));
+            }
+            var trades = [];
+            try {
+                trades = await processFillsToTrades(allFills);
+            } catch(e) {
+                console.error("[Fetch] process error:", e);
+                toast("处理交易数据出错: " + e.message, "error");
+                return;
+            }
+           console.log("[Fetch] Trades processed:", trades.length);
+           for (var ti = 0; ti < trades.length; ti++) {
+               await saveTrade(trades[ti]);
+           }
+           await loadTrades();
+            switchView("trades");
+           toast("成功获取 " + trades.length + " 笔交易记录（API返回 " + allFills.length + " 笔成交）", "success");
+   } catch (e) {
+        toast("获取失败: " + e.message, "error");
+    } finally {
+        btn.disabled = false;
+        btn.textContent = "获取交易记录";
+    }
+}
+async function processFillsToTrades(fills) {
+   // Normalize field names: OKX returns fillPx/fillSz/fillPnl
+   for (var nx = 0; nx < fills.length; nx++) {
+       var fx = fills[nx];
+       fx.px = fx.px || fx.fillPx;
+       fx.sz = fx.sz || fx.fillSz;
+       fx.pnl = fx.pnl || fx.fillPnl;
+       fx.ts = fx.ts || fx.fillTime;
+       fx.fillId = fx.fillId || fx.tradeId;
+        fx.sz = parseFloat(fx.sz || 0);
+        fx.px = parseFloat(fx.px || 0);
+        fx.pnl = parseFloat(fx.pnl || 0);
+   }
+   var groups = {};
+   for (var fi = 0; fi < fills.length; fi++) {
+       var f = fills[fi];
+       var key = f.instId + "|" + (f.posSide || f.side || "net");
+       if (!groups[key]) groups[key] = [];
+       groups[key].push(f);
+   }
+   var result = {};
+   var keys = Object.keys(groups);
+   for (var ki = 0; ki < keys.length; ki++) {
+       var keyFills = groups[keys[ki]];
+       keyFills.sort(function(a, b) { return parseInt(a.fillTime || a.ts) - parseInt(b.fillTime || b.ts); });
+       var parts = keys[ki].split("|");
+       var inst = parts[0];
+       var posSideInfo = parts[1];
+       var currentPos = 0, entryPrice = 0, entrySize = 0;
+       for (var fi2 = 0; fi2 < keyFills.length; fi2++) {
+           var fill = keyFills[fi2];
+            var sz = fill.sz; // already parsed
+            var px = fill.px; // already parsed
+            var pnl = fill.pnl; // already parsed
+           var side = fill.side;
+           var ps = fill.posSide || "net";
+           var isOpen = false, isClose = false;
+            if (inst.includes("-SWAP") && ps === "net") {
+                if (currentPos === 0) {
+                    isOpen = true;
+                } else if (currentPos > 0 && side === "sell") {
+                    isClose = true;
+                } else if (currentPos < 0 && side === "buy") {
+                    isClose = true;
+                } else {
+                    isOpen = true;
+                }
+            } else if (inst.includes("-SWAP")) {
+                if ((side === "buy" && ps === "long") || (side === "sell" && ps === "short")) {
+                    isOpen = true;
+                } else {
+                    isClose = true;
+                }
+            } else {
+                if (side === "buy") isOpen = true;
+                else isClose = true;
+            }
+            if (isOpen) {
+                var dir = (ps === "short" || side === "sell") ? -1 : 1;
+                currentPos += dir * sz;
+                var totalCost = (entryPrice || px) * entrySize + px * sz;
+                entrySize += sz;
+                entryPrice = totalCost / entrySize;
+            }
+            if (isClose) {
+                var realPnl = pnl;
+                if (realPnl === 0 && entryPrice > 0 && currentPos !== 0) {
+                    var dir2 = currentPos > 0 ? 1 : -1;
+                    var actualClose = Math.min(sz, Math.abs(currentPos));
+                    realPnl = (px - entryPrice) * dir2 * actualClose;
+                                        var sizeForTrade = actualClose;
+                    if (currentPos > 0) {
+                        currentPos -= actualClose;
+                    } else {
+                        currentPos += actualClose;
+                    }
+                    entrySize = Math.abs(currentPos);
+                    var remaining = sz - actualClose;
+                    if (remaining > 0.0001) {
+                        var remDir = (side === "sell") ? -1 : 1;
+                        currentPos += remDir * remaining;
+                        var totalCost = (entryPrice || px) * (entrySize || 0) + px * remaining;
+                        entrySize = Math.abs(currentPos);
+                        entryPrice = totalCost / entrySize;
+                    }
+                } else {
+                    currentPos += ((ps === "short" || side === "buy") ? 1 : -1) * sz;
+                    entrySize = Math.abs(currentPos);
+                    var sizeForTrade = Math.min(sz, Math.abs(currentPos) + sz);
+                }
+                if (Math.abs(realPnl) > 0.0001 || Math.abs(currentPos) < 0.001) {
+                   var direction;
+                   if (ps === "net") {
+                       direction = (side === "sell") ? "long" : "short";
+                   } else {
+                       direction = (ps === "short") ? "short" : "long";
+                   }
+                    var tradeKey = fill.ordId + "_" + direction + "_" + inst;
+                    var pnlRatio = 0;
+                    if (entryPrice > 0 && px > 0) {
+                        pnlRatio = (direction === "long" ? (px - entryPrice) / entryPrice : (entryPrice - px) / entryPrice) * 100;
+                    }
+                    if (result[tradeKey]) {
+                        result[tradeKey].pnl += realPnl;
+                        result[tradeKey].fee += parseFloat(fill.fee || 0);
+                        result[tradeKey].exitPrice = result[tradeKey].exitPrice ? (result[tradeKey].exitPrice + px) / 2 : px;
+                        if (entryPrice > 0) result[tradeKey].entryPrice = (result[tradeKey].entryPrice + entryPrice) / 2;
+                        result[tradeKey].size += sz;
+                    } else {
+                        result[tradeKey] = {
+                            id: tradeKey,
+                            instId: inst,
+                            instType: "永续合约",
+                            side: direction,
+                            posSide: ps,
+                            entryPrice: entryPrice || px,
+                            exitPrice: parseFloat(fill.px),
+                            size: sizeForTrade || sz,
+                            pnl: realPnl,
+                            pnlRatio: pnlRatio,
+                            fee: parseFloat(fill.fee || 0),
+                            feeCcy: fill.feeCcy || "USDT",
+                            fillTime: fill.fillTime || fill.ts,
+                            ts: parseInt(fill.fillTime || fill.ts || 0),
+                            priceAction: null,
+                            priceActionWin: null,
+                            chanTheory: null,
+                            chanTheoryWin: null,
+                            notes: ""
+                        };
+                    }
+                } else {
+                    if (currentPos === 0 && entryPrice !== 0) {
+                        entryPrice = 0;
+                        entrySize = 0;
+                    }
+                }
+            }
+        }
+    }
+    for (var fi3 = 0; fi3 < fills.length; fi3++) {
+        var f3 = fills[fi3];
+        var k3 = f3.instId + "|" + (f3.posSide || f3.side || "net");
+        var eKeys = Object.keys(result);
+        var found = false;
+        for (var ek = 0; ek < eKeys.length; ek++) {
+            if (eKeys[ek].startsWith(k3)) { found = true; break; }
+        }
+        if (!found) {
+            var pnl3 = parseFloat(f3.pnl || 0);
+            if (Math.abs(pnl3) > 0.0001) {
+                var dir3 = (f3.posSide === "short") ? "short" : "long";
+                    var tk3 = f3.ordId + "_" + dir3 + "_" + (f3.instId || "");
+                if (!result[tk3]) {
+                    result[tk3] = {
+                        id: tk3,
+                        instId: f3.instId,
+                        instType: (f3.instId && f3.instId.includes("-SWAP")) ? "永续合约" : (f3.instId && f3.instId.includes("-")) ? "交割合约" : "现货",
+                        side: dir3,
+                        posSide: f3.posSide || dir3,
+                        entryPrice: parseFloat(f3.px || 0),
+                        exitPrice: parseFloat(f3.px || 0),
+                        size: parseFloat(f3.sz || 0),
+                        pnl: pnl3,
+                        pnlRatio: parseFloat(f3.pnlRatio || 0) * 100,
+                        fee: parseFloat(f3.fee || 0),
+                        feeCcy: f3.feeCcy || "USDT",
+                        fillTime: f3.fillTime || f3.ts,
+                        ts: parseInt(f3.fillTime || f3.ts || 0),
+                        priceAction: null,
+                        priceActionWin: null,
+                        chanTheory: null,
+                        chanTheoryWin: null,
+                        notes: ""
+                    };
+                }
+            }
+        }
+    }
+    var resultArray = [];
+    var resKeys = Object.keys(result);
+    for (var rk = 0; rk < resKeys.length; rk++) {
+        resultArray.push(result[resKeys[rk]]);
+    }
+    resultArray.sort(function(a, b) { return b.ts - a.ts; });
+    return resultArray;
+}
+async function loadTrades() {
+    var saved = await loadAllTrades();
+    saved.sort(function(a, b) { return b.ts - a.ts; });
+    state.trades = saved;
+    updateUI();
+    document.getElementById("dataStats").textContent = "本地数据: " + state.trades.length + " 条交易记录";
+}
+function selectTrade(id) {
+    state.selectedTradeId = id;
+    var trade = null;
+    for (var ti = 0; ti < state.trades.length; ti++) {
+        if (state.trades[ti].id === id) { trade = state.trades[ti]; break; }
+    }
+    if (!trade) return;
+    document.getElementById("tradeDetail").classList.remove("hidden");
+    renderTradeDetail(trade);
+    setTimeout(function() {
+        document.getElementById("tradeDetail").scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 100);
+}
+function closeDetail() {
+    state.selectedTradeId = null;
+    document.getElementById("tradeDetail").classList.add("hidden");
+}
+function getSelectedTrade() {
+    for (var ti = 0; ti < state.trades.length; ti++) {
+        if (state.trades[ti].id === state.selectedTradeId) return state.trades[ti];
+    }
+    return null;
+}
+function renderTradeDetail(trade) {
+    if (!trade) return;
+    var ts = new Date(parseInt(trade.ts));
+    var pnlClass = trade.pnl > 0.0001 ? "text-green" : (trade.pnl < -0.0001 ? "text-red" : "text-muted");
+    document.getElementById("detailTitle").textContent = trade.instId + " 交易详情";
+    var html = '';
+    html += '<div class="detail-item"><div class="dl">方向</div><div class="dd"><span class="side-badge ' + trade.side + '">' + (trade.side === "long" ? "多单" : "空单") + '</span></div></div>';
+    html += '<div class="detail-item"><div class="dl">类型</div><div class="dd">' + (trade.instType || "永续合约") + '</div></div>';
+    html += '<div class="detail-item"><div class="dl">时间</div><div class="dd" style="font-size:13px">' + ts.toLocaleString("zh-CN") + '</div></div>';
+    html += '<div class="detail-item"><div class="dl">数量</div><div class="dd">' + trade.size + ' 张</div></div>';
+    html += '<div class="detail-item"><div class="dl">入场价</div><div class="dd">$' + trade.entryPrice.toFixed(2) + '</div></div>';
+    html += '<div class="detail-item"><div class="dl">出场价</div><div class="dd">$' + trade.exitPrice.toFixed(2) + '</div></div>';
+    html += '<div class="detail-item"><div class="dl">盈亏</div><div class="dd ' + pnlClass + '">' + (trade.pnl >= 0 ? "+" : "") + trade.pnl.toFixed(2) + ' USDT</div></div>';
+    html += '<div class="detail-item"><div class="dl">盈亏比 (PnL%)</div><div class="dd ' + pnlClass + '">' + (trade.pnlRatio >= 0 ? "+" : "") + trade.pnlRatio.toFixed(2) + '%</div></div>';
+    document.getElementById("detailGrid").innerHTML = html;
+    updateStrategyButtons(trade);
+    document.getElementById("tradeNotes").value = trade.notes || "";
+}
+function updateStrategyButtons(trade) {
+    if (!trade) trade = getSelectedTrade();
+    if (!trade) return;
+    var paBtn = document.getElementById("paTagBtn");
+    var chanBtn = document.getElementById("chanTagBtn");
+    var paWinBtn = document.getElementById("paWinBtn");
+    var chanWinBtn = document.getElementById("chanWinBtn");
+    var status = document.getElementById("strategyStatus");
+    paBtn.className = "tag-btn" + (trade.priceAction === true ? " active-pa" : "");
+    paBtn.textContent = trade.priceAction === true ? "✓ 价格行为学" : "价格行为学";
+    chanBtn.className = "tag-btn" + (trade.chanTheory === true ? " active-chan" : "");
+    chanBtn.textContent = trade.chanTheory === true ? "✓ 缠论" : "缠论";
+    paWinBtn.className = "tag-btn" + (trade.priceActionWin === true ? " win" : trade.priceActionWin === false ? " loss" : "");
+    paWinBtn.textContent = trade.priceActionWin === true ? "价格行为学 ✓" : (trade.priceActionWin === false ? "价格行为学 ✕" : "价格行为学 ?");
+    paWinBtn.style.display = trade.priceAction === true ? "" : "none";
+    chanWinBtn.className = "tag-btn" + (trade.chanTheoryWin === true ? " win" : trade.chanTheoryWin === false ? " loss" : "");
+    chanWinBtn.textContent = trade.chanTheoryWin === true ? "缠论 ✓" : (trade.chanTheoryWin === false ? "缠论 ✕" : "缠论 ?");
+    chanWinBtn.style.display = trade.chanTheory === true ? "" : "none";
+    var parts = [];
+    if (trade.priceAction === true) {
+        parts.push("价格行为学: " + (trade.priceActionWin === true ? "✓" : trade.priceActionWin === false ? "✕" : "待定"));
+    }
+    if (trade.chanTheory === true) {
+        parts.push("缠论: " + (trade.chanTheoryWin === true ? "✓" : trade.chanTheoryWin === false ? "✕" : "待定"));
+    }
+    status.textContent = parts.length ? parts.join(" | ") : "未标记策略";
+}
+async function toggleStrategy(type) {
+    var trade = getSelectedTrade();
+    if (!trade) return;
+    if (type === "priceAction") {
+        trade.priceAction = trade.priceAction === true ? null : true;
+        if (trade.priceAction !== true) trade.priceActionWin = null;
+    } else {
+        trade.chanTheory = trade.chanTheory === true ? null : true;
+        if (trade.chanTheory !== true) trade.chanTheoryWin = null;
+    }
+    await saveTrade(trade);
+    updateStrategyButtons(trade);
+    renderTrades();
+    updateUI();
+}
+async function toggleWinLoss(type) {
+    var trade = getSelectedTrade();
+    if (!trade) return;
+    if (type === "paWin") {
+        if (trade.priceAction !== true) return;
+        trade.priceActionWin = trade.priceActionWin === true ? false : (trade.priceActionWin === false ? null : true);
+    } else {
+        if (trade.chanTheory !== true) return;
+        trade.chanTheoryWin = trade.chanTheoryWin === true ? false : (trade.chanTheoryWin === false ? null : true);
+    }
+    await saveTrade(trade);
+    updateStrategyButtons(trade);
+    renderTrades();
+    updateUI();
+}
+var notesTimer;
+function onNotesChange() {
+    clearTimeout(notesTimer);
+    notesTimer = setTimeout(saveNotes, 500);
+}
+async function saveNotes() {
+    var trade = getSelectedTrade();
+    if (!trade) return;
+    var val = document.getElementById("tradeNotes").value;
+    if (trade.notes === val) return;
+    trade.notes = val;
+    await saveTrade(trade);
+    renderTrades();
+}
+async function deleteTrade() {
+    var trade = getSelectedTrade();
+    if (!trade) return;
+    if (!confirm("确定要删除 " + trade.instId + " 这笔交易记录吗？")) return;
+    await deleteTradeById(trade.id);
+    var newTrades = [];
+    for (var ti = 0; ti < state.trades.length; ti++) {
+        if (state.trades[ti].id !== trade.id) newTrades.push(state.trades[ti]);
+    }
+    state.trades = newTrades;
+    closeDetail();
+    updateUI();
+    toast("已删除", "info");
+}
+function renderTrades() {
+    var searchEl = document.getElementById("tradeSearch");
+    var search = searchEl ? searchEl.value.toLowerCase() : "";
+    var sideF = document.getElementById("sideFilter") ? document.getElementById("sideFilter").value : "all";
+    var pnlF = document.getElementById("pnlFilter") ? document.getElementById("pnlFilter").value : "all";
+    var stratF = document.getElementById("strategyFilter") ? document.getElementById("strategyFilter").value : "all";
+    var filtered = [];
+    for (var ti = 0; ti < state.trades.length; ti++) {
+        var t = state.trades[ti];
+        if (sideF !== "all" && t.side !== sideF) continue;
+        if (pnlF === "win" && t.pnl <= 0) continue;
+        if (pnlF === "loss" && t.pnl > 0) continue;
+        if (stratF === "pa" && t.priceAction !== true) continue;
+        if (stratF === "chan" && t.chanTheory !== true) continue;
+        if (stratF === "unmarked" && (t.priceAction === true || t.chanTheory === true)) continue;
+        if (search) {
+            var matchStr = (t.instId + " " + (t.notes || "") + " " + t.side).toLowerCase();
+            if (matchStr.indexOf(search) < 0) continue;
+        }
+        filtered.push(t);
+    }
+    state.filteredTrades = filtered;
+    document.getElementById("tradeCount").textContent = "共 " + filtered.length + " 笔";
+    var tbody = document.getElementById("tradesBody");
+    var empty = document.getElementById("tradesEmpty");
+    if (filtered.length === 0) {
+        tbody.innerHTML = "";
+        empty.style.display = "";
+        return;
+    }
+    empty.style.display = "none";
+    var rows = "";
+    for (var fi = 0; fi < filtered.length; fi++) {
+        var t = filtered[fi];
+        var ts = new Date(parseInt(t.ts));
+        var pnlClass = t.pnl > 0.0001 ? "positive" : (t.pnl < -0.0001 ? "negative" : "zero");
+        var selected = t.id === state.selectedTradeId;
+        var stratTags = "";
+        if (t.priceAction === true) {
+            stratTags += '<span class="strategy-tag pa">价格行为学 ' + (t.priceActionWin === true ? "✓" : t.priceActionWin === false ? "✕" : "?") + '</span>';
+        }
+        if (t.chanTheory === true) {
+            stratTags += '<span class="strategy-tag chan">缠论 ' + (t.chanTheoryWin === true ? "✓" : t.chanTheoryWin === false ? "✕" : "?") + '</span>';
+        }
+        if (!stratTags) stratTags = '<span class="text-muted" style="font-size:11px">—</span>';
+        var notePreview = t.notes ? (t.notes.length > 20 ? t.notes.slice(0, 20) + "…" : t.notes) : "";
+        rows += '<tr class="' + (selected ? "selected" : "") + '" onclick="selectTrade(' + t.id + ')">';
+        rows += '<td style="white-space:nowrap;font-size:12px">' + ts.toLocaleDateString("zh-CN") + '<br><span class="text-muted">' + ts.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" }) + '</span></td>';
+        rows += '<td><strong>' + t.instId + '</strong><br><span class="text-muted" style="font-size:11px">' + (t.instType || "永续合约") + '</span></td>';
+        rows += '<td><span class="side-badge ' + t.side + '">' + (t.side === "long" ? "多" : "空") + '</span></td>';
+        rows += '<td>' + t.size + '</td>';
+        rows += '<td>$' + t.entryPrice.toFixed(2) + '</td>';
+        rows += '<td>$' + t.exitPrice.toFixed(2) + '</td>';
+        rows += '<td><span class="pnl-badge ' + pnlClass + '">' + (t.pnl >= 0 ? "+" : "") + t.pnl.toFixed(2) + '</span></td>';
+        rows += '<td style="font-size:12px;' + (t.pnlRatio >= 0 ? "color:#00c853" : "color:#ff5252") + '">' + (t.pnlRatio >= 0 ? "+" : "") + t.pnlRatio.toFixed(2) + '%</td>';
+        rows += '<td>' + stratTags + '</td>';
+        rows += '<td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#8892a6;font-size:12px">' + (notePreview || "—") + '</td>';
+        rows += '</tr>';
+    }
+    tbody.innerHTML = rows;
+}
+function updateUI() {
+    renderDashboard();
+    renderTrades();
+    renderAnalysis();
+    updateConnectionStatus();
+    var ds = document.getElementById("dataStats");
+    if (ds) ds.textContent = "本地数据: " + state.trades.length + " 条交易记录";
+}
+function renderDashboard() {
+    var trades = state.trades;
+    var total = trades.length;
+    var winners = [], losers = [], longs = [], shorts = [];
+    for (var ti = 0; ti < total; ti++) {
+        var t = trades[ti];
+        if (t.pnl > 0.0001) winners.push(t);
+        else if (t.pnl < -0.0001) losers.push(t);
+        if (t.side === "long") longs.push(t);
+        else shorts.push(t);
+    }
+    var longWins = [], shortWins = [];
+    for (var li = 0; li < longs.length; li++) { if (longs[li].pnl > 0.0001) longWins.push(longs[li]); }
+    for (var si = 0; si < shorts.length; si++) { if (shorts[si].pnl > 0.0001) shortWins.push(shorts[si]); }
+    var totalPnl = 0;
+    for (var ti = 0; ti < total; ti++) totalPnl += trades[ti].pnl;
+    var avgPnl = total ? totalPnl / total : 0;
+    document.getElementById("statTotalTrades").textContent = total;
+    var pnlEl = document.getElementById("statTotalPnl");
+    pnlEl.textContent = (totalPnl >= 0 ? "+" : "") + totalPnl.toFixed(2) + " USDT";
+    pnlEl.className = "value " + (totalPnl >= 0 ? "text-green" : "text-red");
+    document.getElementById("statTotalPnlSub").textContent = "平均 " + (avgPnl >= 0 ? "+" : "") + avgPnl.toFixed(2);
+    var winRate = total ? (winners.length / total * 100) : 0;
+    var wrEl = document.getElementById("statWinRate");
+    wrEl.textContent = winRate.toFixed(1) + "%";
+    wrEl.className = "value " + (winRate >= 50 ? "text-green" : "text-red");
+    document.getElementById("statWinRateSub").textContent = winners.length + " / " + total;
+    var lwr = longs.length ? (longWins.length / longs.length * 100) : 0;
+    var swr = shorts.length ? (shortWins.length / shorts.length * 100) : 0;
+    document.getElementById("statLongWinRate").textContent = lwr.toFixed(1) + "%";
+    document.getElementById("statLongWinRateSub").textContent = longWins.length + " / " + longs.length;
+    document.getElementById("statShortWinRate").textContent = swr.toFixed(1) + "%";
+    document.getElementById("statShortWinRateSub").textContent = shortWins.length + " / " + shorts.length;
+    var avgWin = winners.length ? (function(){ var s=0; for(var i=0;i<winners.length;i++) s+=winners[i].pnl; return s/winners.length; })() : 0;
+    var avgLoss = losers.length ? (function(){ var s=0; for(var i=0;i<losers.length;i++) s+=Math.abs(losers[i].pnl); return s/losers.length; })() : 1;
+    var rrr = avgLoss > 0 ? avgWin / avgLoss : 0;
+    document.getElementById("statAvgRrr").textContent = isFinite(rrr) ? rrr.toFixed(2) : "—";
+    document.getElementById("statAvgRrr").className = "value " + (rrr >= 1.5 ? "text-green" : rrr >= 1 ? "text-yellow" : "");
+    var paTrades = [], paWins = [], chanTrades = [], chanWins = [];
+    for (var ti = 0; ti < total; ti++) {
+        var t = trades[ti];
+        if (t.priceAction === true) { paTrades.push(t); if (t.priceActionWin === true) paWins.push(t); }
+        if (t.chanTheory === true) { chanTrades.push(t); if (t.chanTheoryWin === true) chanWins.push(t); }
+    }
+    var paRate = paTrades.length ? (paWins.length / paTrades.length * 100) : 0;
+    var chanRate = chanTrades.length ? (chanWins.length / chanTrades.length * 100) : 0;
+    document.getElementById("statPaWinRate").textContent = paTrades.length ? paRate.toFixed(1) + "%" : "—";
+    document.getElementById("statPaSub").textContent = "标记 " + paTrades.length + " 笔交易";
+    document.getElementById("statChanWinRate").textContent = chanTrades.length ? chanRate.toFixed(1) + "%" : "—";
+    document.getElementById("statChanSub").textContent = "标记 " + chanTrades.length + " 笔交易";
+    var recent = [];
+    for (var ri = Math.max(0, total - 30); ri < total; ri++) recent.push(trades[ri]);
+    recent.reverse();
+    var chart = document.getElementById("pnlChart");
+    if (recent.length === 0) {
+        chart.innerHTML = '<div class="text-center text-muted" style="width:100%;padding:40px">暂无数据</div>';
+        return;
+    }
+    var maxAbs = 1;
+    for (var ri = 0; ri < recent.length; ri++) {
+        maxAbs = Math.max(maxAbs, Math.abs(recent[ri].pnl));
+    }
+    var bars = "";
+    for (var ri = 0; ri < recent.length; ri++) {
+        var h = Math.abs(recent[ri].pnl) / maxAbs * 180;
+        bars += '<div class="bar ' + (recent[ri].pnl >= 0 ? "pos" : "neg") + '" style="height:' + Math.max(h, 2) + 'px" title="' + recent[ri].instId + ': ' + (recent[ri].pnl >= 0 ? "+" : "") + recent[ri].pnl.toFixed(2) + '"></div>';
+    }
+    chart.innerHTML = bars;
+}
+function renderAnalysis() {
+    var trades = state.trades;
+    var total = trades.length;
+    if (total === 0) {
+        var ids = ["longWinFill","longWinPct","shortWinFill","shortWinPct","totalWinFill","totalWinPct","paWinFill","paWinPct","chanWinFill","chanWinPct","unmarkedPct","totalProfit","totalLoss","maxProfit","maxLoss","avgProfit","avgLoss","avgDailyTrades","avgWeeklyTrades","topInstrument","tradingDays","consecutiveWins","consecutiveLosses"];
+        for (var i = 0; i < ids.length; i++) {
+            var el = document.getElementById(ids[i]);
+            if (el) el.textContent = "—";
+        }
+        return;
+    }
+    var winners = [], losers = [], longs = [], shorts = [];
+    for (var ti = 0; ti < total; ti++) {
+        var t = trades[ti];
+        if (t.pnl > 0.0001) winners.push(t);
+        else if (t.pnl < -0.0001) losers.push(t);
+        if (t.side === "long") longs.push(t);
+        else shorts.push(t);
+    }
+    var longWins = [], shortWins = [];
+    for (var li = 0; li < longs.length; li++) { if (longs[li].pnl > 0.0001) longWins.push(longs[li]); }
+    for (var si = 0; si < shorts.length; si++) { if (shorts[si].pnl > 0.0001) shortWins.push(shorts[si]); }
+    setWinRateBar("longWinFill", "longWinPct", longs, longWins);
+    setWinRateBar("shortWinFill", "shortWinPct", shorts, shortWins);
+    setWinRateBar("totalWinFill", "totalWinPct", trades, winners);
+    var paT = [], paW = [], chanT = [], chanW = [], unmarked = [];
+    for (var ti = 0; ti < total; ti++) {
+        var t = trades[ti];
+        if (t.priceAction === true) { paT.push(t); if (t.priceActionWin === true) paW.push(t); }
+        if (t.chanTheory === true) { chanT.push(t); if (t.chanTheoryWin === true) chanW.push(t); }
+        if (t.priceAction !== true && t.chanTheory !== true) unmarked.push(t);
+    }
+    setWinRateBar("paWinFill", "paWinPct", paT, paW);
+    setWinRateBar("chanWinFill", "chanWinPct", chanT, chanW);
+    document.getElementById("unmarkedPct").textContent = total ? (unmarked.length / total * 100).toFixed(1) + "%" : "0%";
+    var totalProfit = 0, totalLoss = 0;
+    for (var ti = 0; ti < winners.length; ti++) totalProfit += winners[ti].pnl;
+    for (var ti = 0; ti < losers.length; ti++) totalLoss += losers[ti].pnl;
+    var maxProfit = 0, maxLoss = 0;
+    if (winners.length > 0) { maxProfit = winners[0].pnl; for (var ti = 1; ti < winners.length; ti++) { if (winners[ti].pnl > maxProfit) maxProfit = winners[ti].pnl; } }
+    if (losers.length > 0) { maxLoss = losers[0].pnl; for (var ti = 1; ti < losers.length; ti++) { if (losers[ti].pnl < maxLoss) maxLoss = losers[ti].pnl; } }
+    var avgProfit = winners.length ? totalProfit / winners.length : 0;
+    var avgLoss = losers.length ? totalLoss / losers.length : 0;
+    document.getElementById("totalProfit").textContent = "+" + totalProfit.toFixed(2) + " USDT";
+    document.getElementById("totalLoss").textContent = totalLoss.toFixed(2) + " USDT";
+    document.getElementById("maxProfit").textContent = "+" + maxProfit.toFixed(2) + " USDT";
+    document.getElementById("maxLoss").textContent = maxLoss.toFixed(2) + " USDT";
+    document.getElementById("avgProfit").textContent = "+" + avgProfit.toFixed(2) + " USDT";
+    document.getElementById("avgLoss").textContent = avgLoss.toFixed(2) + " USDT";
+    var dates = {};
+    for (var ti = 0; ti < trades.length; ti++) {
+        var d = new Date(trades[ti].ts);
+        var ds = d.getFullYear() + "-" + (d.getMonth()+1) + "-" + d.getDate();
+        if (!dates[ds]) dates[ds] = 0;
+        dates[ds]++;
+    }
+    var dateKeys = Object.keys(dates).sort();
+    var numDays = dateKeys.length;
+    var numWeeks = Math.max(numDays / 7, 1);
+    document.getElementById("avgDailyTrades").textContent = numDays ? (total / numDays).toFixed(1) : "—";
+    document.getElementById("avgWeeklyTrades").textContent = numDays ? (total / numWeeks).toFixed(1) : "—";
+    document.getElementById("tradingDays").textContent = numDays + " 天";
+    var freq = {};
+    for (var ti = 0; ti < trades.length; ti++) {
+        var inst = trades[ti].instId;
+        if (!freq[inst]) freq[inst] = 0;
+        freq[inst]++;
+    }
+    var topInst = null, topCount = 0;
+    var fKeys = Object.keys(freq);
+    for (var fi = 0; fi < fKeys.length; fi++) {
+        if (freq[fKeys[fi]] > topCount) { topCount = freq[fKeys[fi]]; topInst = fKeys[fi]; }
+    }
+    document.getElementById("topInstrument").textContent = topInst ? topInst + " (" + topCount + "笔)" : "—";
+    var sorted = [];
+    for (var ti = 0; ti < trades.length; ti++) sorted.push(trades[ti]);
+    sorted.sort(function(a, b) { return b.ts - a.ts; });
+    var curW = 0, curL = 0, maxW = 0, maxL = 0;
+    for (var si = 0; si < sorted.length; si++) {
+        if (sorted[si].pnl > 0.0001) { curW++; curL = 0; if (curW > maxW) maxW = curW; }
+        else if (sorted[si].pnl < -0.0001) { curL++; curW = 0; if (curL > maxL) maxL = curL; }
+        else { curW = 0; curL = 0; }
+    }
+    document.getElementById("consecutiveWins").textContent = maxW + " 次";
+    document.getElementById("consecutiveLosses").textContent = maxL + " 次";
+}
+function setWinRateBar(fillId, pctId, all, wins) {
+    var rate = all.length ? (wins.length / all.length * 100) : 0;
+    var el = document.getElementById(fillId);
+    if (el) el.style.width = rate + "%";
+    var pctEl = document.getElementById(pctId);
+    if (pctEl) pctEl.textContent = rate.toFixed(1) + "% (" + wins.length + "/" + all.length + ")";
+}
+function sortTrades(field) {
+    if (state.sortField === field) {
+        state.sortDir *= -1;
+    } else {
+        state.sortField = field;
+        state.sortDir = -1;
+    }
+    var dir = state.sortDir;
+    state.trades.sort(function(a, b) {
+        var cmp = 0;
+        switch (field) {
+            case "time": cmp = a.ts - b.ts; break;
+            case "instrument": cmp = a.instId.localeCompare(b.instId); break;
+            case "side": cmp = a.side.localeCompare(b.side); break;
+            case "size": cmp = a.size - b.size; break;
+            case "pnl": cmp = a.pnl - b.pnl; break;
+        }
+        return cmp * dir;
+    });
+    renderTrades();
+}
+function switchView(view) {
+    state.currentView = view;
+    var tabs = document.querySelectorAll(".nav-tab");
+    for (var ti = 0; ti < tabs.length; ti++) {
+        tabs[ti].classList.toggle("active", tabs[ti].dataset.view === view);
+    }
+    var views = ["viewDashboard", "viewTrades", "viewAnalysis", "viewSettings"];
+    for (var vi = 0; vi < views.length; vi++) {
+        var el = document.getElementById(views[vi]);
+        if (el) el.classList.toggle("hidden", views[vi] !== "view" + view.charAt(0).toUpperCase() + view.slice(1));
+    }
+    if (view === "trades") renderTrades();
+    else if (view === "analysis") renderAnalysis();
+    else if (view === "dashboard") renderDashboard();
+    else if (view === "settings") {
+        document.getElementById("apiKey").value = state.settings.apiKey;
+        document.getElementById("apiSecret").value = state.settings.apiSecret;
+        document.getElementById("apiPassphrase").value = state.settings.apiPassphrase;
+        document.getElementById("dataStats").textContent = "本地数据: " + state.trades.length + " 条交易记录";
+    }
+}
+function toggleSettings() {
+    switchView(state.currentView === "settings" ? "dashboard" : "settings");
+}
+function exportData() {
+    if (state.trades.length === 0) {
+        toast("没有数据可以导出", "warning");
+        return;
+    }
+    var data = JSON.stringify({ version: 1, trades: state.trades, exportedAt: new Date().toISOString() }, null, 2);
+    var blob = new Blob([data], { type: "application/json" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = "okx-trades-" + new Date().toISOString().slice(0, 10) + ".json";
+    a.click();
+    URL.revokeObjectURL(url);
+    toast("数据导出成功", "success");
+}
+async function importData(event) {
+    var file = event.target.files[0];
+    if (!file) return;
+    try {
+        var text = await file.text();
+        var data = JSON.parse(text);
+        var imported = data.trades || data.data || [];
+        if (!Array.isArray(imported) || imported.length === 0) {
+            toast("文件格式无效", "error");
+            return;
+        }
+        for (var i = 0; i < imported.length; i++) {
+            if (imported[i].id) await saveTrade(imported[i]);
+        }
+        await loadTrades();
+        toast("成功导入 " + imported.length + " 笔交易", "success");
+    } catch (e) {
+        toast("导入失败: " + e.message, "error");
+    }
+    event.target.value = "";
+}
+async function clearAllData() {
+    if (!confirm("确定要清除所有本地交易数据吗？此操作不可恢复。")) return;
+    if (!confirm("再次确认：清除所有数据？")) return;
+    await deleteAllTrades();
+    state.trades = [];
+    closeDetail();
+    updateUI();
+    toast("数据已清除", "info");
+}
+function toast(message, type) {
+    var container = document.getElementById("toastContainer");
+    var el = document.createElement("div");
+    el.className = "toast " + (type || "info");
+    el.textContent = message;
+    container.appendChild(el);
+    setTimeout(function() {
+        el.style.opacity = "0";
+        el.style.transition = "opacity 0.3s ease";
+        setTimeout(function() { el.remove(); }, 300);
+    }, 3500);
+}
+document.addEventListener("DOMContentLoaded", async function() {
+    var saved = loadSettings();
+    state.settings = saved;
+    document.getElementById("apiKey").value = saved.apiKey;
+    document.getElementById("apiSecret").value = saved.apiSecret;
+    document.getElementById("apiPassphrase").value = saved.apiPassphrase;
+    var tabs = document.querySelectorAll(".nav-tab");
+    for (var ti = 0; ti < tabs.length; ti++) {
+        tabs[ti].addEventListener("click", function() {
+            switchView(this.dataset.view);
+        });
+    }
+    await loadTrades();
+    if (saved.apiKey) {
+        state.connected = true;
+        updateConnectionStatus();
+    }
+    toast("欢迎使用 OKX 交易分析系统", "info");
+});
+
+async function testFillsEndpoint() {
+    saveSettingsFromForm();
+    if (!state.settings.apiKey) { toast("请先填写API信息", "error"); return; }
+    var btn = document.getElementById("testFillsBtn");
+    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> 测试中...'; }
+    var el = document.getElementById("debugResult");
+    if (el) el.classList.remove("hidden");
+    var text = "";
+    try {
+        try {
+            var cfg = await okxRequest("GET", "/api/v5/account/config");
+            var uid = (cfg.data && cfg.data[0] && cfg.data[0].uid) || "?";
+            text += "OK 连接成功 (UID: " + uid + ")\n\n";
+        } catch(e) { text += "FAIL 连接失败: " + e.message + "\n\n"; }
+        
+        try {
+            text += "--- 尝试 /trade/fills (近期成交) ---\n";
+            var d1 = await okxRequest("GET", "/api/v5/trade/fills?instType=SWAP&limit=5");
+            text += "返回 code=" + d1.code + " 数据条数=" + (d1.data || []).length + "\n";
+            if (d1.data && d1.data.length > 0) {
+                text += "第一条字段: " + Object.keys(d1.data[0]).join(", ") + "\n";
+                text += "第一条JSON: " + JSON.stringify(d1.data[0]).slice(0, 400) + "\n";
+            }
+        } catch(e) { text += "FAIL /trade/fills 错误: " + e.message + "\n"; }
+        
+        text += "\n";
+        
+        try {
+            text += "--- 尝试 /trade/fills-history (历史成交) ---\n";
+            var d2 = await okxRequest("GET", "/api/v5/trade/fills-history?instType=SWAP&limit=5");
+            text += "返回 code=" + d2.code + " 数据条数=" + (d2.data || []).length + "\n";
+            if (d2.data && d2.data.length > 0) {
+                text += "第一条字段: " + Object.keys(d2.data[0]).join(", ") + "\n";
+                text += "第一条JSON: " + JSON.stringify(d2.data[0]).slice(0, 400) + "\n";
+            }
+        } catch(e) { text += "FAIL /fills-history 错误: " + e.message + "\n"; }
+        
+        if (el) el.textContent = text;
+        toast("调试完成，查看下方输出", "info");
+    } catch(e) {
+        if (el) el.textContent = "调试出错: " + e.message;
+    } finally {
+        if (btn) { btn.disabled = false; btn.textContent = "调试API"; }
+    }
+}
+
+
+async function testFillsEndpoint() {
+    saveSettingsFromForm();
+    if (!state.settings.apiKey) { toast("请先填写API信息", "error"); return; }
+    var btn = document.getElementById("testFillsBtn");
+    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> 测试中...'; }
+    var el = document.getElementById("debugResult");
+    if (el) el.classList.remove("hidden");
+    var text = "";
+    try {
+        try {
+            var cfg = await okxRequest("GET", "/api/v5/account/config");
+            var uid = (cfg.data && cfg.data[0] && cfg.data[0].uid) || "?";
+            text += "OK 连接成功 (UID: " + uid + ")\n\n";
+        } catch(e) { text += "FAIL 连接失败: " + e.message + "\n\n"; }
+        
+        try {
+            text += "--- 尝试 /trade/fills (近期成交) ---\n";
+            var d1 = await okxRequest("GET", "/api/v5/trade/fills?instType=SWAP&limit=5");
+            text += "返回 code=" + d1.code + " 数据条数=" + (d1.data || []).length + "\n";
+            if (d1.data && d1.data.length > 0) {
+                text += "第一条字段: " + Object.keys(d1.data[0]).join(", ") + "\n";
+                text += "第一条JSON: " + JSON.stringify(d1.data[0]).slice(0, 400) + "\n";
+            }
+        } catch(e) { text += "FAIL /trade/fills 错误: " + e.message + "\n"; }
+        
+        text += "\n";
+        
+        try {
+            text += "--- 尝试 /trade/fills-history (历史成交) ---\n";
+            var d2 = await okxRequest("GET", "/api/v5/trade/fills-history?instType=SWAP&limit=5");
+            text += "返回 code=" + d2.code + " 数据条数=" + (d2.data || []).length + "\n";
+            if (d2.data && d2.data.length > 0) {
+                text += "第一条字段: " + Object.keys(d2.data[0]).join(", ") + "\n";
+                text += "第一条JSON: " + JSON.stringify(d2.data[0]).slice(0, 400) + "\n";
+            }
+        } catch(e) { text += "FAIL /fills-history 错误: " + e.message + "\n"; }
+        
+        if (el) el.textContent = text;
+        toast("调试完成，查看下方输出", "info");
+    } catch(e) {
+        if (el) el.textContent = "调试出错: " + e.message;
+    } finally {
+        if (btn) { btn.disabled = false; btn.textContent = "调试API"; }
+    }
+}
+
+</script>
+</body>
+</html>
